@@ -1,3 +1,4 @@
+
 // ============================================================
 // ESTADO DA APLICAÇÃO
 // ============================================================
@@ -5,6 +6,10 @@
 let allPlayers = [];
 let currentSortColumn = 'moneyballScore';
 let sortAscending = false;
+
+// ============================================================
+// ELEMENTOS DA PÁGINA
+// ============================================================
 
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
@@ -17,46 +22,67 @@ const searchInput = document.getElementById('searchInput');
 // COLUNAS DA TABELA
 // ============================================================
 
-const tableColumns = [
+// Dados que aparecem em todas as categorias.
+const colunasIdentificacao = [
     { key: 'nome', label: 'Nome', type: 'text' },
-    { key: 'categoriaLabel', label: 'Categoria', type: 'text' },
     { key: 'posicao', label: 'Posição', type: 'text' },
     { key: 'idade', label: 'Idade', type: 'number' },
     { key: 'nac', label: 'Nacionalidade', type: 'text' },
     { key: 'clube', label: 'Clube', type: 'text' },
-    { key: 'valorNumerico', label: 'Valor', type: 'money' },
+    { key: 'valorNumerico', label: 'Valor', type: 'money' }
+];
 
-    { key: 'sof90', label: 'Sof/90', type: 'number' },
-    { key: 'penDefendidos', label: 'Pen. Def.', type: 'number' },
-    { key: 'percPenDef', label: '% Pen. Def.', type: 'percent' },
+// Estatísticas específicas de cada posição.
+const colunasPorCategoria = {
+    goleiro: [
+        { key: 'sof90', label: 'Sof/90', type: 'number' },
+        { key: 'percPenDef', label: '% Pen. Def.', type: 'percent' },
+        { key: 'penDefendidos', label: 'Pen. Defendidos', type: 'number' }
+    ],
 
-    { key: 'des', label: 'Desarmes', type: 'number' },
-    { key: 'mDes', label: '% Desarmes', type: 'percent' },
-    { key: 'vermelhos', label: 'Vermelhos', type: 'number' },
+    defensor: [
+        { key: 'des', label: 'Desarmes', type: 'number' },
+        { key: 'mDes', label: '% Desarmes', type: 'percent' },
+        { key: 'psC', label: '% Passes Certos', type: 'percent' },
+        { key: 'vermelhos', label: 'Vermelhos', type: 'number' }
+    ],
 
-    { key: 'psC', label: '% Passes Certos', type: 'percent' },
-    { key: 'gls90', label: 'Gols/90', type: 'number' },
-    { key: 'xg', label: 'xG', type: 'number' },
-    { key: 'ast', label: 'Assistências', type: 'number' },
-    { key: 'assis90', label: 'Assis/90', type: 'number' },
+    'meio-campista': [
+        { key: 'psC', label: '% Passes Certos', type: 'percent' },
+        { key: 'gls90', label: 'Gols/90', type: 'number' },
+        { key: 'xg', label: 'xG', type: 'number' },
+        { key: 'des', label: 'Desarmes', type: 'number' }
+    ],
 
-    { key: 'atTa', label: 'Ataque Tático', type: 'number' },
-    { key: 'penR', label: 'Pen/R', type: 'text' },
+    atacante: [
+        { key: 'gls90', label: 'Gols/90', type: 'number' },
+        { key: 'xg', label: 'xG', type: 'number' },
+        { key: 'ast', label: 'Assistências', type: 'number' },
+        { key: 'assis90', label: 'Assis/90', type: 'number' },
+        { key: 'atTa', label: 'Ataque Tático', type: 'number' },
+        { key: 'penR', label: 'Pen/R', type: 'text' }
+    ]
+};
 
+// Informações comuns e scores.
+const colunasComuns = [
     { key: 'consistencia', label: 'Consistência', type: 'number' },
     { key: 'clMed', label: 'Cl. Média', type: 'number' },
-
     { key: 'scoreDesempenho', label: 'Score Desempenho', type: 'score' },
     { key: 'scoreFinanceiro', label: 'Score Financeiro', type: 'score' },
     { key: 'moneyballScore', label: 'Score Final', type: 'score' },
     { key: 'recommendation', label: 'Avaliação Moneyball', type: 'recommendation' }
 ];
 
+// A tabela começa com as colunas gerais.
+// Depois da importação, será adaptada à categoria.
+let tableColumns = [...colunasIdentificacao, ...colunasComuns];
+
 // ============================================================
-// CRIAÇÃO DO CABEÇALHO DA TABELA
+// CRIAÇÃO DINÂMICA DO CABEÇALHO
 // ============================================================
 
-function criarCabecalhoTabela() {
+function criarCabecalhoTabela(categoria = 'desconhecido') {
     const table = playersTableBody.closest('table');
 
     if (!table) return;
@@ -64,6 +90,14 @@ function criarCabecalhoTabela() {
     const thead = table.querySelector('thead');
 
     if (!thead) return;
+
+    const colunasEspecificas = colunasPorCategoria[categoria] || [];
+
+    tableColumns = [
+        ...colunasIdentificacao,
+        ...colunasEspecificas,
+        ...colunasComuns
+    ];
 
     thead.innerHTML = `
         <tr>
@@ -237,7 +271,13 @@ async function handleUpload(file) {
         sortAscending = false;
         searchInput.value = '';
 
+        // Identifica a categoria da lista e atualiza as colunas.
+        const categoriaAtual = allPlayers[0]?.categoria || 'desconhecido';
+
+        criarCabecalhoTabela(categoriaAtual);
+
         renderTable(allPlayers);
+
         resultsSection.classList.remove('d-none');
 
         try {
@@ -447,6 +487,11 @@ async function restaurarUltimaAnalise() {
 
         if (Array.isArray(savedPlayers) && savedPlayers.length > 0) {
             allPlayers = savedPlayers;
+
+            // Também recupera as colunas corretas ao abrir o site.
+            const categoriaAtual = allPlayers[0]?.categoria || 'desconhecido';
+
+            criarCabecalhoTabela(categoriaAtual);
 
             renderTable(allPlayers);
 
