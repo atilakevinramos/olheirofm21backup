@@ -14,6 +14,16 @@ body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+/* ============================================================
+   ESTRUTURA GERAL
+   ============================================================ */
+
+.container-fluid {
+    padding-top: 16px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+}
+
 .card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
@@ -36,12 +46,16 @@ body {
     border-color: #34d399;
 }
 
-/* TABELA */
+/* ============================================================
+   TABELA
+   ============================================================ */
 
 .table-custom {
     color: var(--text-main);
-    font-size: 13px;
+    font-size: 11px;
     margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 .table-custom th {
@@ -51,9 +65,9 @@ body {
     border-top: none;
     font-weight: 700;
     text-transform: uppercase;
-    font-size: 11px;
-    letter-spacing: 0.6px;
-    padding: 12px 8px;
+    font-size: 9px;
+    letter-spacing: 0.3px;
+    padding: 8px 5px;
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
@@ -67,7 +81,7 @@ body {
     background-color: var(--card-bg);
     border-bottom: 1px solid var(--border-color);
     color: var(--text-main);
-    padding: 12px 8px;
+    padding: 7px 5px;
     vertical-align: middle;
     white-space: nowrap;
 }
@@ -76,7 +90,117 @@ body {
     background-color: #232837;
 }
 
-/* BADGES */
+/* ============================================================
+   COLUNA DO NOME FIXA À ESQUERDA
+   ============================================================ */
+
+.table-custom th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: #161922;
+}
+
+.table-custom td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background-color: var(--card-bg);
+    font-weight: 700;
+}
+
+.table-hover tbody tr:hover td:first-child {
+    background-color: #232837;
+}
+
+/* ============================================================
+   SCORES FIXOS À DIREITA
+   ============================================================ */
+
+/*
+   Os quatro últimos campos da tabela são:
+   1. Score Desempenho
+   2. Score Financeiro
+   3. Score Final
+   4. Avaliação Moneyball
+
+   Eles ficam fixos à direita, mesmo durante a rolagem horizontal.
+*/
+
+/* Avaliação Moneyball */
+.table-custom th:last-child,
+.table-custom td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 6;
+    min-width: 145px;
+    width: 145px;
+    background-color: #161922;
+}
+
+.table-custom td:last-child {
+    background-color: var(--card-bg);
+}
+
+/* Score Final */
+.table-custom th:nth-last-child(2),
+.table-custom td:nth-last-child(2) {
+    position: sticky;
+    right: 145px;
+    z-index: 5;
+    min-width: 72px;
+    width: 72px;
+    background-color: #161922;
+}
+
+.table-custom td:nth-last-child(2) {
+    background-color: var(--card-bg);
+}
+
+/* Score Financeiro */
+.table-custom th:nth-last-child(3),
+.table-custom td:nth-last-child(3) {
+    position: sticky;
+    right: 217px;
+    z-index: 5;
+    min-width: 72px;
+    width: 72px;
+    background-color: #161922;
+}
+
+.table-custom td:nth-last-child(3) {
+    background-color: var(--card-bg);
+}
+
+/* Score Desempenho */
+.table-custom th:nth-last-child(4),
+.table-custom td:nth-last-child(4) {
+    position: sticky;
+    right: 289px;
+    z-index: 5;
+    min-width: 72px;
+    width: 72px;
+    background-color: #161922;
+}
+
+.table-custom td:nth-last-child(4) {
+    background-color: var(--card-bg);
+}
+
+/* Sombra para separar os scores das demais informações */
+.table-custom th:nth-last-child(4),
+.table-custom td:nth-last-child(4) {
+    box-shadow: -5px 0 8px rgba(0, 0, 0, 0.22);
+}
+
+/* Mantém o fundo correto dos scores durante o hover */
+.table-hover tbody tr:hover td:nth-last-child(-n+4) {
+    background-color: #232837;
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
 
 .badge-success {
     background-color: rgba(16, 185, 129, 0.2);
@@ -106,16 +230,19 @@ body {
     font-weight: 600;
 }
 
-/* CORES DO SCORE */
+/* ============================================================
+   CORES DO SCORE
+   ============================================================ */
 
 .score-badge {
     display: inline-block;
-    min-width: 48px;
-    padding: 6px 9px;
-    border-radius: 8px;
+    min-width: 38px;
+    padding: 4px 5px;
+    border-radius: 6px;
     font-weight: 900;
-    font-size: 14px;
+    font-size: 11px;
     border: 1px solid transparent;
+    text-align: center;
 }
 
 .score-red {
@@ -142,25 +269,29 @@ body {
     border-color: rgba(16, 185, 129, 0.45);
 }
 
-/* VALOR DE MERCADO */
+/* ============================================================
+   VALOR DE MERCADO
+   ============================================================ */
 
 .valor-badge {
     font-weight: 700;
     color: #facc15;
 }
 
-/* DESTAQUE DAS RECOMENDAÇÕES */
+/* ============================================================
+   DESTAQUE DAS RECOMENDAÇÕES
+   ============================================================ */
 
 .market-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    padding: 8px 12px;
-    border-radius: 9px;
-    font-size: 11px;
+    gap: 5px;
+    padding: 5px 7px;
+    border-radius: 7px;
+    font-size: 9px;
     font-weight: 800;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.1px;
     white-space: nowrap;
     border: 1px solid transparent;
 }
@@ -182,12 +313,17 @@ body {
     border-color: rgba(59, 130, 246, 0.5);
 }
 
+/* ============================================================
+   PESQUISA
+   ============================================================ */
+
 .search-box {
     background-color: #161922;
     border: 1px solid var(--border-color);
     color: #fff;
     border-radius: 8px;
-    padding: 8px 14px;
+    padding: 6px 10px;
+    font-size: 12px;
 }
 
 .search-box:focus {
@@ -197,15 +333,21 @@ body {
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
-/* LEGENDA DO SCORE */
+.search-box::placeholder {
+    color: #7f899b;
+}
+
+/* ============================================================
+   LEGENDA DO SCORE
+   ============================================================ */
 
 .score-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
-    margin-bottom: 15px;
-    font-size: 11px;
+    margin-bottom: 10px;
+    font-size: 10px;
 }
 
 .legend-item {
@@ -216,8 +358,8 @@ body {
 }
 
 .legend-dot {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
 }
 
@@ -238,11 +380,11 @@ body {
 }
 
 .market-column {
-    min-width: 205px;
+    min-width: 145px;
 }
 
 /* ============================================================
-   NOVOS ESTILOS - ABAS DE NAVEGAÇÃO
+   ABAS DE NAVEGAÇÃO
    ============================================================ */
 
 .main-tabs {
@@ -250,7 +392,7 @@ body {
     justify-content: center;
     gap: 10px;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
+    padding-bottom: 10px;
 }
 
 .main-tab {
@@ -258,9 +400,9 @@ body {
     color: var(--text-muted);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 10px 22px;
+    padding: 8px 18px;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     transition: all 0.2s ease;
 }
 
@@ -422,6 +564,97 @@ body {
 }
 
 /* ============================================================
+   MELHORIAS VISUAIS
+   ============================================================ */
+
+body {
+    background:
+        radial-gradient(
+            circle at 15% 0%,
+            rgba(16, 185, 129, 0.07),
+            transparent 35%
+        ),
+        var(--bg-color);
+    min-height: 100vh;
+}
+
+.card {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.card:hover {
+    border-color: rgba(148, 163, 184, 0.25);
+}
+
+.drop-zone {
+    transition:
+        background 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease;
+}
+
+.drop-zone:hover {
+    transform: translateY(-2px);
+}
+
+.table-custom th {
+    position: relative;
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.table-custom td {
+    transition: background-color 0.15s ease;
+}
+
+.score-badge {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.score-badge:hover {
+    transform: translateY(-1px);
+}
+
+.market-badge {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.market-badge:hover {
+    transform: translateY(-1px);
+}
+
+.badge-opportunity:hover {
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+}
+
+.main-tab {
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.main-tab:hover {
+    transform: translateY(-1px);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.main-tab:focus-visible {
+    outline: 2px solid var(--accent-green);
+    outline-offset: 3px;
+}
+
+/* ============================================================
    RESPONSIVIDADE DO TUTORIAL
    ============================================================ */
 
@@ -460,194 +693,78 @@ body {
         width: 100%;
         margin-left: 0;
     }
+
+    .drop-zone {
+        padding: 22px 15px;
+    }
 }
 
 /* ============================================================
-   MELHORIAS VISUAIS ADICIONAIS
-   ============================================================ */
-
-/* Fundo com gradiente discreto */
-
-body {
-    background:
-        radial-gradient(
-            circle at 15% 0%,
-            rgba(16, 185, 129, 0.07),
-            transparent 35%
-        ),
-        var(--bg-color);
-    min-height: 100vh;
-}
-
-/* Acabamento dos cards */
-
-.card {
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.card:hover {
-    border-color: rgba(148, 163, 184, 0.25);
-}
-
-/* Área de importação */
-
-.drop-zone {
-    transition:
-        background 0.25s ease,
-        border-color 0.25s ease,
-        transform 0.25s ease;
-}
-
-.drop-zone:hover {
-    transform: translateY(-2px);
-}
-
-/* Tabela: rolagem e acabamento */
-
-.table-custom {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table-custom th {
-    position: relative;
-    transition:
-        color 0.2s ease,
-        background-color 0.2s ease;
-}
-
-.table-custom td {
-    transition: background-color 0.15s ease;
-}
-
-/* Destaque da primeira coluna (nome do jogador) */
-
-.table-custom th:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 3;
-    background-color: #161922;
-}
-
-.table-custom td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background-color: var(--card-bg);
-    font-weight: 700;
-}
-
-/* Mantém o destaque da primeira coluna ao passar o mouse */
-
-.table-hover tbody tr:hover td:first-child {
-    background-color: #232837;
-}
-
-/* Realce suave dos scores */
-
-.score-badge {
-    text-align: center;
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.score-badge:hover {
-    transform: translateY(-1px);
-}
-
-/* Recomendações com acabamento mais refinado */
-
-.market-badge {
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.market-badge:hover {
-    transform: translateY(-1px);
-}
-
-.badge-opportunity:hover {
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
-}
-
-/* Campo de pesquisa */
-
-.search-box {
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-.search-box::placeholder {
-    color: #7f899b;
-}
-
-/* Abas com transição mais suave */
-
-.main-tab {
-    transition:
-        color 0.2s ease,
-        border-color 0.2s ease,
-        background-color 0.2s ease,
-        transform 0.2s ease;
-}
-
-.main-tab:hover {
-    transform: translateY(-1px);
-}
-
-/* Foco acessível para elementos interativos */
-
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-.main-tab:focus-visible {
-    outline: 2px solid var(--accent-green);
-    outline-offset: 3px;
-}
-
-/* ============================================================
-   AJUSTES RESPONSIVOS ADICIONAIS
+   AJUSTES RESPONSIVOS DA TABELA
    ============================================================ */
 
 @media (max-width: 768px) {
 
+    .container-fluid {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
     .table-custom {
-        font-size: 12px;
+        font-size: 10px;
     }
 
     .table-custom th {
-        font-size: 10px;
-        padding: 10px 7px;
+        font-size: 8px;
+        padding: 7px 4px;
     }
 
     .table-custom td {
-        padding: 10px 7px;
+        padding: 6px 4px;
+    }
+
+    .score-badge {
+        min-width: 34px;
+        padding: 4px;
+        font-size: 10px;
+    }
+
+    .market-badge {
+        padding: 4px 5px;
+        font-size: 8px;
     }
 
     .market-column {
-        min-width: 180px;
+        min-width: 130px;
     }
 }
 
 @media (max-width: 576px) {
 
-    .drop-zone {
-        padding: 22px 15px;
+    .table-custom th:last-child,
+    .table-custom td:last-child {
+        min-width: 130px;
+        width: 130px;
     }
 
-    .score-badge {
-        min-width: 42px;
-        padding: 5px 7px;
-        font-size: 12px;
+    .table-custom th:nth-last-child(2),
+    .table-custom td:nth-last-child(2) {
+        right: 130px;
+        min-width: 65px;
+        width: 65px;
     }
 
-    .market-badge {
-        padding: 7px 9px;
-        font-size: 10px;
+    .table-custom th:nth-last-child(3),
+    .table-custom td:nth-last-child(3) {
+        right: 195px;
+        min-width: 65px;
+        width: 65px;
+    }
+
+    .table-custom th:nth-last-child(4),
+    .table-custom td:nth-last-child(4) {
+        right: 260px;
+        min-width: 65px;
+        width: 65px;
     }
 }
