@@ -461,3 +461,193 @@ body {
         margin-left: 0;
     }
 }
+
+/* ============================================================
+   MELHORIAS VISUAIS ADICIONAIS
+   ============================================================ */
+
+/* Fundo com gradiente discreto */
+
+body {
+    background:
+        radial-gradient(
+            circle at 15% 0%,
+            rgba(16, 185, 129, 0.07),
+            transparent 35%
+        ),
+        var(--bg-color);
+    min-height: 100vh;
+}
+
+/* Acabamento dos cards */
+
+.card {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.card:hover {
+    border-color: rgba(148, 163, 184, 0.25);
+}
+
+/* Área de importação */
+
+.drop-zone {
+    transition:
+        background 0.25s ease,
+        border-color 0.25s ease,
+        transform 0.25s ease;
+}
+
+.drop-zone:hover {
+    transform: translateY(-2px);
+}
+
+/* Tabela: rolagem e acabamento */
+
+.table-custom {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-custom th {
+    position: relative;
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.table-custom td {
+    transition: background-color 0.15s ease;
+}
+
+/* Destaque da primeira coluna (nome do jogador) */
+
+.table-custom th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background-color: #161922;
+}
+
+.table-custom td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background-color: var(--card-bg);
+    font-weight: 700;
+}
+
+/* Mantém o destaque da primeira coluna ao passar o mouse */
+
+.table-hover tbody tr:hover td:first-child {
+    background-color: #232837;
+}
+
+/* Realce suave dos scores */
+
+.score-badge {
+    text-align: center;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.score-badge:hover {
+    transform: translateY(-1px);
+}
+
+/* Recomendações com acabamento mais refinado */
+
+.market-badge {
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.market-badge:hover {
+    transform: translateY(-1px);
+}
+
+.badge-opportunity:hover {
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+}
+
+/* Campo de pesquisa */
+
+.search-box {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.search-box::placeholder {
+    color: #7f899b;
+}
+
+/* Abas com transição mais suave */
+
+.main-tab {
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.main-tab:hover {
+    transform: translateY(-1px);
+}
+
+/* Foco acessível para elementos interativos */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.main-tab:focus-visible {
+    outline: 2px solid var(--accent-green);
+    outline-offset: 3px;
+}
+
+/* ============================================================
+   AJUSTES RESPONSIVOS ADICIONAIS
+   ============================================================ */
+
+@media (max-width: 768px) {
+
+    .table-custom {
+        font-size: 12px;
+    }
+
+    .table-custom th {
+        font-size: 10px;
+        padding: 10px 7px;
+    }
+
+    .table-custom td {
+        padding: 10px 7px;
+    }
+
+    .market-column {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 576px) {
+
+    .drop-zone {
+        padding: 22px 15px;
+    }
+
+    .score-badge {
+        min-width: 42px;
+        padding: 5px 7px;
+        font-size: 12px;
+    }
+
+    .market-badge {
+        padding: 7px 9px;
+        font-size: 10px;
+    }
+}
