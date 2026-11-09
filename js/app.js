@@ -1,4 +1,5 @@
-// ============================================================
+
+ // ============================================================
 // ESTADO DA APLICAÇÃO
 // ============================================================
 
@@ -49,13 +50,17 @@ const colunasPorCategoria = {
         { key: 'cabG90', label: 'Cab G/90', type: 'number' }
     ],
 
+    // Novo modelo de MEIAS:
+    // percentual de passes, assistências por 90,
+    // dribles por jogo e gols esperados.
     'meio-campista': [
         { key: 'psC', label: '% Passe', type: 'percent' },
-        { key: 'cabPct', label: 'Cab %', type: 'percent' },
-        { key: 'mDes', label: 'M Des', type: 'percent' },
-        { key: 'vermelhos', label: 'Vermelhos', type: 'number' }
+        { key: 'assis90', label: 'Assis/90', type: 'number' },
+        { key: 'drbpj', label: 'DrbPJ', type: 'number' },
+        { key: 'xg', label: 'xG', type: 'number' }
     ],
 
+    // Volantes mantêm o modelo defensivo.
     volante: [
         { key: 'psC', label: '% Passe', type: 'percent' },
         { key: 'cabPct', label: 'Cab %', type: 'percent' },
