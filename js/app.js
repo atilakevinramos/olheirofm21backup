@@ -1,4 +1,3 @@
-
 // ============================================================
 // ESTADO DA APLICAÇÃO
 // ============================================================
@@ -344,7 +343,21 @@ function renderTable(players) {
             const valor = formatarCelula(jogador, coluna);
 
             if (coluna.type === 'score') {
-                const score = Number(jogador[coluna.key] ?? 0);
+                // Score ausente não deve ser exibido como zero.
+                if (
+                    jogador[coluna.key] === null ||
+                    jogador[coluna.key] === undefined
+                ) {
+                    return `
+                        <td>
+                            <span class="score-badge score-orange">
+                                -
+                            </span>
+                        </td>
+                    `;
+                }
+
+                const score = Number(jogador[coluna.key]);
                 const scoreClass = getScoreClass(score);
 
                 return `
