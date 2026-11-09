@@ -21,7 +21,8 @@ function normalizarMetrica(valor, referencia, maior = true) {
     if (
         valor === null ||
         valor === undefined ||
-        Number.isNaN(Number(valor))
+        valor === '' ||
+        !Number.isFinite(Number(valor))
     ) {
         return null;
     }
@@ -52,6 +53,98 @@ function calcularMediaPonderada(metricas) {
     if (somaPesos === 0) return null;
 
     return somaNotas / somaPesos;
+}
+
+// ============================================================
+// VALIDAÇÃO DOS DADOS POR CATEGORIA
+// ============================================================
+
+// Algumas estatísticas podem não aparecer no relatório porque
+// o jogador não teve oportunidades de registrá-las.
+//
+// Por isso, não exigimos todas as estatísticas do modelo.
+// Exigimos apenas uma quantidade mínima de métricas principais.
+//
+// Um valor igual a zero é considerado válido.
+// Apenas null, undefined ou valores inválidos são ignorados.
+
+function possuiMetricaValida(jogador, campo) {
+    const valor = jogador[campo];
+
+    return (
+        valor !== null &&
+        valor !== undefined &&
+        valor !== '' &&
+        Number.isFinite(Number(valor))
+    );
+}
+
+function verificarDadosSuficientes(p) {
+    const criterios = {
+        goleiro: {
+            metricas: [
+                'clMed',
+                'sof90',
+                'consistencia'
+            ],
+            minimo: 2
+        },
+
+        defensor: {
+            metricas: [
+                'clMed',
+                'des',
+                'mDes',
+                'psC',
+                'consistencia'
+            ],
+            minimo: 3
+        },
+
+        'meio-campista': {
+            metricas: [
+                'clMed',
+                'psC',
+                'gls90',
+                'xg',
+                'des',
+                'consistencia'
+            ],
+            minimo: 3
+        },
+
+        atacante: {
+            metricas: [
+                'clMed',
+                'gls90',
+                'xg',
+                'assis90',
+                'ast',
+                'consistencia'
+            ],
+            minimo: 3
+        }
+    };
+
+    const criterio = criterios[p.categoria];
+
+    if (!criterio) {
+        return {
+            suficiente: false,
+            metricasDisponiveis: 0,
+            minimoNecessario: 0
+        };
+    }
+
+    const metricasDisponiveis = criterio.metricas.filter(campo =>
+        possuiMetricaValida(p, campo)
+    ).length;
+
+    return {
+        suficiente: metricasDisponiveis >= criterio.minimo,
+        metricasDisponiveis,
+        minimoNecessario: criterio.minimo
+    };
 }
 
 // ============================================================
@@ -177,6 +270,14 @@ function calcularScoreAtacante(p) {
 // ============================================================
 
 function calcularScoreDesempenho(p) {
+    // Antes de calcular a nota, verifica se existem estatísticas
+    // suficientes para fazer uma avaliação minimamente confiável.
+    const validacao = verificarDadosSuficientes(p);
+
+    if (!validacao.suficiente) {
+        return null;
+    }
+
     let resultado = null;
 
     switch (p.categoria) {
@@ -197,29 +298,12 @@ function calcularScoreDesempenho(p) {
             break;
 
         default:
-            // Compatibilidade com análises antigas.
-            resultado = calcularMediaPonderada([
-                {
-                    nota: normalizarMetrica(p.clMed, 8.0),
-                    peso: 50
-                },
-                {
-                    nota: normalizarMetrica(p.gls90, 0.8),
-                    peso: 25
-                },
-                {
-                    nota: normalizarMetrica(p.xg, 10),
-                    peso: 15
-                },
-                {
-                    nota: normalizarMetrica(p.hdj, 10),
-                    peso: 10
-                }
-            ]);
+            resultado = null;
     }
 
-    // Sem estatísticas suficientes, não inventa uma nota.
-    return resultado === null ? 50 : limitarPontuacao(resultado);
+    return resultado === null
+        ? null
+        : limitarPontuacao(resultado);
 }
 
 // ============================================================
@@ -293,6 +377,13 @@ function calcularScoreFinanceiro(p) {
 
 function calculateMoneyballScore(p) {
     const desempenho = calcularScoreDesempenho(p);
+
+    // Sem dados suficientes de desempenho, não existe score final.
+    // O score financeiro sozinho não pode recomendar um jogador.
+    if (desempenho === null) {
+        return null;
+    }
+
     const financeiro = calcularScoreFinanceiro(p);
 
     // O desempenho tem maior influência no resultado final.
@@ -308,6 +399,10 @@ function calculateMoneyballScore(p) {
 // ============================================================
 
 function getScoreClass(score) {
+    if (score === null || score === undefined) {
+        return 'score-orange';
+    }
+
     if (score <= 40) return 'score-red';
     if (score <= 55) return 'score-orange';
     if (score <= 70) return 'score-yellow';
@@ -320,6 +415,14 @@ function getScoreClass(score) {
 // ============================================================
 
 function obterRecomendacao(p) {
+    // A validação acontece antes de qualquer recomendação.
+    if (p.moneyballScore === null || p.moneyballScore === undefined) {
+        return {
+            recommendation: 'Dados insuficientes',
+            badgeClass: 'warning'
+        };
+    }
+
     const score = p.moneyballScore;
     const valor = p.valorNumerico;
 
@@ -370,16 +473,18 @@ function obterRecomendacao(p) {
 
 function analyzePlayers(rawPlayers) {
     const analyzedPlayers = rawPlayers.map((p, index) => {
-        const scoreDesempenho = arredondar(
-            calcularScoreDesempenho(p)
-        );
+        const validacao = verificarDadosSuficientes(p);
+
+        const scoreDesempenho = calcularScoreDesempenho(p);
 
         const scoreFinanceiro = calcularScoreFinanceiro(p);
 
-        const moneyballScore = arredondar(
-            (scoreDesempenho * 0.75) +
-            (scoreFinanceiro * 0.25)
-        );
+        const moneyballScore = scoreDesempenho === null
+            ? null
+            : arredondar(
+                (scoreDesempenho * 0.75) +
+                (scoreFinanceiro * 0.25)
+            );
 
         const jogador = {
             ...p,
@@ -392,6 +497,10 @@ function analyzePlayers(rawPlayers) {
 
             scoreClass: getScoreClass(moneyballScore),
 
+            dadosSuficientes: validacao.suficiente,
+            metricasDisponiveis: validacao.metricasDisponiveis,
+            minimoMetricasNecessarias: validacao.minimoNecessario,
+
             poucosJogos: false
         };
 
@@ -403,9 +512,22 @@ function analyzePlayers(rawPlayers) {
         return jogador;
     });
 
-    analyzedPlayers.sort(
-        (a, b) => b.moneyballScore - a.moneyballScore
-    );
+    analyzedPlayers.sort((a, b) => {
+        // Jogadores sem score ficam depois dos jogadores avaliados.
+        if (a.moneyballScore === null && b.moneyballScore !== null) {
+            return 1;
+        }
+
+        if (a.moneyballScore !== null && b.moneyballScore === null) {
+            return -1;
+        }
+
+        if (a.moneyballScore === null && b.moneyballScore === null) {
+            return 0;
+        }
+
+        return b.moneyballScore - a.moneyballScore;
+    });
 
     return analyzedPlayers;
 }
