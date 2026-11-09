@@ -1,0 +1,538 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FM21 - Moneyball & Scout Pro Analyzer</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+
+    <script src="js/parser.js" defer></script>
+    <script src="js/moneyball.js" defer></script>
+    <script src="js/database.js" defer></script>
+    <script src="js/app.js" defer></script>
+</head>
+
+<body>
+
+    <div class="container-fluid py-4 px-4">
+
+        <header class="mb-4 text-center">
+            <h2 class="fw-bold text-success mb-1">
+                <i class="fa-solid fa-chart-line me-2"></i>
+                FM21 Moneyball & Market Analyzer
+            </h2>
+
+            <p class="text-secondary small">
+                Análise rigorosa de custo-benefício e desempenho de atletas
+            </p>
+        </header>
+
+        <!-- NAVEGAÇÃO ENTRE AS ABAS -->
+        <div class="main-tabs mb-4">
+            <button class="main-tab active" id="analyzerTabButton"
+                    onclick="showTab('analyzer')">
+                <i class="fa-solid fa-chart-line me-2"></i>
+                Analisador
+            </button>
+
+            <button class="main-tab" id="tutorialTabButton"
+                    onclick="showTab('tutorial')">
+                <i class="fa-solid fa-book-open me-2"></i>
+                Como utilizar?
+            </button>
+        </div>
+
+        <!-- ================================================== -->
+        <!-- ABA DO ANALISADOR -->
+        <!-- ================================================== -->
+
+        <div id="analyzerTab">
+
+            <div class="row mb-4">
+                <div class="col-md-6 mx-auto">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+
+                            <div id="dropZone" class="drop-zone">
+
+                                <i class="fa-solid fa-cloud-arrow-up text-success mb-2"
+                                   style="font-size: 2rem;"></i>
+
+                                <h6 class="fw-bold mb-1">
+                                    Arraste seu arquivo listafinalcomvalor.html aqui
+                                </h6>
+
+                                <p class="text-secondary small mb-3">
+                                    ou clique para selecionar do computador
+                                </p>
+
+                                <input type="file"
+                                       id="fileInput"
+                                       accept=".html,.htm"
+                                       class="d-none">
+
+                                <button type="button" class="btn btn-success btn-sm px-4 fw-bold">
+                                    <i class="fa-solid fa-folder-open me-1"></i>
+                                    Selecionar Arquivo
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultsSection" class="d-none">
+
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-3">
+
+                    <h5 class="mb-0 fw-bold">
+                        Atletas Listados:
+                        <span id="totalPlayers" class="text-success">0</span>
+                    </h5>
+
+                    <div class="w-100 w-md-25">
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control form-control-sm search-box"
+                               placeholder="🔍 Filtrar por nome ou clube...">
+                    </div>
+
+                </div>
+
+                <div class="score-legend">
+
+                    <span class="text-secondary fw-bold">SCORE:</span>
+
+                    <span class="legend-item">
+                        <span class="legend-dot legend-red"></span>
+                        0–40 Ruim
+                    </span>
+
+                    <span class="legend-item">
+                        <span class="legend-dot legend-orange"></span>
+                        41–55 Baixo
+                    </span>
+
+                    <span class="legend-item">
+                        <span class="legend-dot legend-yellow"></span>
+                        56–70 Regular
+                    </span>
+
+                    <span class="legend-item">
+                        <span class="legend-dot legend-green"></span>
+                        71–100 Excelente
+                    </span>
+
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+
+                        <div class="table-responsive">
+
+                            <table class="table table-custom table-hover align-middle text-center">
+
+                                <thead>
+                                    <tr>
+
+                                        <th onclick="sortData('nome')"
+                                            class="text-start ps-3"
+                                            title="Nome completo do jogador.">
+                                            Nome ↕
+                                        </th>
+
+                                        <th onclick="sortData('nac')"
+                                            title="Nacionalidade do jogador.">
+                                            Nac ↕
+                                        </th>
+
+                                        <th onclick="sortData('clube')"
+                                            title="Clube atual do jogador.">
+                                            Clube ↕
+                                        </th>
+
+                                        <th onclick="sortData('idade')"
+                                            title="Idade atual do jogador, conforme informada na exportação do Football Manager.">
+                                            Idade ↕
+                                        </th>
+
+                                        <th onclick="sortData('totalJogos')"
+                                            title="Total de jogos disputados, somando titularidades e entradas como reserva.">
+                                            Jogos ↕
+                                        </th>
+
+                                        <th onclick="sortData('gls')"
+                                            title="Quantidade total de gols marcados pelo jogador.">
+                                            Gls ↕
+                                        </th>
+
+                                        <th onclick="sortData('ast')"
+                                            title="Quantidade total de assistências realizadas pelo jogador.">
+                                            Ast ↕
+                                        </th>
+
+                                        <th onclick="sortData('gls90')"
+                                            title="Gols por 90 minutos. Ajuda a avaliar a eficiência ofensiva independentemente do tempo jogado.">
+                                            Gls/90 ↕
+                                        </th>
+
+                                        <th onclick="sortData('xg')"
+                                            title="Expected Goals (gols esperados). Estima a qualidade das oportunidades de finalização.">
+                                            xG ↕
+                                        </th>
+
+                                        <th onclick="sortData('hdj')"
+                                            title="Homem do Jogo: quantidade de vezes que o jogador recebeu esse reconhecimento.">
+                                            HdJ ↕
+                                        </th>
+
+                                        <th onclick="sortData('clMed')"
+                                            title="Classificação média atribuída ao jogador nas partidas.">
+                                            Cl Med ↕
+                                        </th>
+
+                                        <th onclick="sortData('valorNumerico')"
+                                            title="Valor de mercado estimado pelo Football Manager. Não representa necessariamente o preço real de contratação.">
+                                            Valor de Mercado ↕
+                                        </th>
+
+                                        <th onclick="sortData('moneyballScore')"
+                                            title="Pontuação Moneyball de 0 a 100, considerando desempenho, custo-benefício e confiabilidade da amostra.">
+                                            Score ↕
+                                        </th>
+
+                                        <th class="market-column"
+                                            title="Avaliação da oportunidade de mercado conforme os critérios atuais do algoritmo.">
+                                            Avaliação de Mercado
+                                        </th>
+
+                                    </tr>
+                                </thead>
+
+                                <tbody id="playersTableBody"></tbody>
+
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================================================== -->
+        <!-- ABA DO TUTORIAL -->
+        <!-- ================================================== -->
+
+        <div id="tutorialTab" class="d-none">
+
+            <div class="tutorial-header text-center mb-4">
+                <div class="tutorial-icon mb-3">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+
+                <h3 class="fw-bold">Como utilizar o Moneyball Analyzer?</h3>
+
+                <p class="text-secondary">
+                    Siga o passo a passo para exportar seus jogadores do Football Manager 2021
+                    e analisar os dados no nosso site.
+                </p>
+            </div>
+
+            <!-- ETAPA 1 -->
+            <div class="card tutorial-card mb-3">
+                <div class="card-body p-4">
+
+                    <div class="tutorial-step">
+                        <span class="tutorial-number">01</span>
+
+                        <div>
+                            <h5 class="fw-bold mb-2">
+                                Baixe a visualização personalizada
+                            </h5>
+
+                            <p class="text-secondary mb-3">
+                                Primeiro, baixe o arquivo de visualização do Football Manager.
+                                Ele organiza as colunas da lista de jogadores com as informações
+                                necessárias para o funcionamento do analisador.
+                            </p>
+
+                            <a href="https://drive.google.com/file/d/1ydG1ppN1fNox1J69f4oSKUzL5D7Htfwg/view?usp=sharing"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-success fw-bold">
+                                <i class="fa-solid fa-download me-2"></i>
+                                Baixar arquivo de visualização (.fmf)
+                            </a>
+
+                            <p class="small text-secondary mt-2 mb-0">
+                                O arquivo possui a extensão .fmf.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ETAPA 2 -->
+            <div class="card tutorial-card mb-3">
+                <div class="card-body p-4">
+
+                    <div class="tutorial-step">
+                        <span class="tutorial-number">02</span>
+
+                        <div>
+                            <h5 class="fw-bold mb-2">
+                                Instale o arquivo no Football Manager 2021
+                            </h5>
+
+                            <p class="text-secondary">
+                                Após baixar o arquivo, coloque-o na pasta
+                                <strong>views</strong> do Football Manager 2021.
+                            </p>
+
+                            <div class="tutorial-path">
+                                <i class="fa-solid fa-folder-open me-2"></i>
+                                Documentos → Sports Interactive → Football Manager 2021 → views
+                            </div>
+
+                            <p class="text-secondary mt-3 mb-2">
+                                No Windows, o caminho normalmente será:
+                            </p>
+
+                            <div class="tutorial-code">
+                                Documentos\Sports Interactive\Football Manager 2021\views
+                            </div>
+
+                            <div class="tutorial-tip mt-3">
+                                <i class="fa-solid fa-lightbulb me-2"></i>
+                                <strong>Dica:</strong> se a pasta views não existir,
+                                crie uma pasta com esse nome dentro da pasta
+                                Football Manager 2021.
+                            </div>
+
+                            <p class="text-secondary mt-3 mb-0">
+                                Não coloque o arquivo .fmf dentro da pasta de instalação
+                                do jogo. Ele deve ficar na pasta views dos seus documentos.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ETAPA 3 -->
+            <div class="card tutorial-card mb-3">
+                <div class="card-body p-4">
+
+                    <div class="tutorial-step">
+                        <span class="tutorial-number">03</span>
+
+                        <div>
+                            <h5 class="fw-bold mb-2">
+                                Abra o jogo e pesquise os jogadores
+                            </h5>
+
+                            <p class="text-secondary">
+                                Agora abra o Football Manager 2021 e entre na área de
+                                pesquisa de jogadores.
+                            </p>
+
+                            <p class="text-secondary mb-2">
+                                Utilize os filtros do próprio jogo para encontrar os
+                                atletas que deseja analisar. Você pode pesquisar por
+                                idade, posição, nacionalidade, clube e outros critérios
+                                disponíveis no FM21.
+                            </p>
+
+                            <div class="tutorial-tip">
+                                <i class="fa-solid fa-lightbulb me-2"></i>
+                                Você pode fazer diferentes pesquisas. O analisador
+                                trabalhará com os jogadores que você exportar.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ETAPA 4 -->
+            <div class="card tutorial-card mb-3">
+                <div class="card-body p-4">
+
+                    <div class="tutorial-step">
+                        <span class="tutorial-number">04</span>
+
+                        <div>
+                            <h5 class="fw-bold mb-2">
+                                Carregue a visualização personalizada
+                            </h5>
+
+                            <p class="text-secondary">
+                                Na lista de jogadores, abra o menu de visualizações
+                                (normalmente localizado na parte superior da tabela).
+                            </p>
+
+                            <p class="text-secondary">
+                                Procure a visualização personalizada que você colocou
+                                na pasta views e selecione-a.
+                            </p>
+
+                            <div class="tutorial-tip">
+                                <i class="fa-solid fa-lightbulb me-2"></i>
+                                Confira se as colunas foram carregadas corretamente
+                                antes de exportar os jogadores.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ETAPA 5 -->
+            <div class="card tutorial-card mb-3">
+                <div class="card-body p-4">
+
+                    <div class="tutorial-step">
+                        <span class="tutorial-number">05</span>
+
+                        <div>
+                            <h5 class="fw-bold mb-2">
+                                Selecione e exporte os jogadores em HTML
+                            </h5>
+
+                            <p class="text-secondary">
+                                Com a lista de jogadores aberta e a visualização
+                                personalizada selecionada, faça o seguinte:
+                            </p>
+
+                            <div class="shortcut-list">
+
+                                <div class="shortcut-item">
+                                    <span class="shortcut-key">CTRL</span>
+                                    <span class="shortcut-plus">+</span>
+                                    <span class="shortcut-key">A</span>
+                                    <span class="shortcut-description">
+                                        Seleciona todos os jogadores da lista.
+                                    </span>
+                                </div>
+
+                                <div class="shortcut-item">
+                                    <span class="shortcut-key">CTRL</span>
+                                    <span class="shortcut-plus">+</span>
+                                    <span class="shortcut-key">P</span>
+                                    <span class="shortcut-description">
+                                        Abre a opção de impressão/exportação.
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            <ol class="text-secondary mt-3">
+                                <li>Selecione todos os jogadores com Ctrl + A.</li>
+                                <li>Pressione Ctrl + P.</li>
+                                <li>Escolha a opção de salvar em formato HTML.</li>
+                                <li>Salve o arquivo no seu computador.</li>
+                            </ol>
+
+                            <div class="tutorial-tip">
+                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                <strong>Importante:</strong> salve o arquivo como HTML,
+                                e não como PDF. O analisador precisa ler a tabela
+                                de jogadores e suas estatísticas.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ETAPA 6 -->
+            <div class="card tutorial-card mb-4">
+                <div class="card-body p-4">
+
+                    <div class="tutorial-step">
+                        <span class="tutorial-number tutorial-number-final">06</span>
+
+                        <div>
+                            <h5 class="fw-bold mb-2">
+                                Envie o HTML para o Moneyball Analyzer
+                            </h5>
+
+                            <p class="text-secondary">
+                                Agora falta pouco! Volte para a aba Analisador,
+                                selecione o arquivo HTML que você acabou de salvar
+                                e aguarde o processamento.
+                            </p>
+
+                            <p class="text-secondary">
+                                O site vai extrair os dados, calcular o Score Moneyball
+                                e apresentar a classificação dos jogadores.
+                            </p>
+
+                            <button type="button"
+                                    class="btn btn-success fw-bold mt-2"
+                                    onclick="showTab('analyzer')">
+                                <i class="fa-solid fa-chart-line me-2"></i>
+                                Ir para o analisador
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- OBSERVAÇÃO FINAL -->
+            <div class="tutorial-footer text-center">
+                <i class="fa-solid fa-circle-info me-2"></i>
+                O arquivo .fmf organiza as colunas dentro do jogo.
+                O arquivo HTML contém os jogadores e estatísticas que serão
+                enviados ao analisador.
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- CONTROLE DAS ABAS -->
+    <script>
+        function showTab(tab) {
+            const analyzer = document.getElementById('analyzerTab');
+            const tutorial = document.getElementById('tutorialTab');
+
+            const analyzerButton = document.getElementById('analyzerTabButton');
+            const tutorialButton = document.getElementById('tutorialTabButton');
+
+            if (tab === 'tutorial') {
+                analyzer.classList.add('d-none');
+                tutorial.classList.remove('d-none');
+
+                analyzerButton.classList.remove('active');
+                tutorialButton.classList.add('active');
+
+            } else {
+                tutorial.classList.add('d-none');
+                analyzer.classList.remove('d-none');
+
+                tutorialButton.classList.remove('active');
+                analyzerButton.classList.add('active');
+            }
+
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+
+</body>
+</html>
