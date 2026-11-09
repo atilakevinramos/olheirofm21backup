@@ -1,171 +1,406 @@
 // ============================================================
-// ALGORITMO MONEYBALL
+// ALGORITMO MONEYBALL - FM21
 // ============================================================
 
-// Mantém uma métrica dentro de um intervalo entre 0 e 100.
 function limitarPontuacao(valor) {
     return Math.max(0, Math.min(100, valor));
 }
 
-// Calcula o score de oportunidade de mercado.
-function calculateMoneyballScore(p) {
-
-    const jogos = p.totalJogos;
-
-    // 1. CLASSIFICAÇÃO MÉDIA: peso de 45%.
-    const scoreClassificacao = limitarPontuacao(
-        ((p.clMed - 6.0) / 2.2) * 100
-    );
-
-    // 2. GOLS POR 90 MINUTOS: peso de 20%.
-    const scoreGols90 = limitarPontuacao(
-        (p.gls90 / 0.8) * 100
-    );
-
-    // 3. EXPECTATIVA DE GOLS POR JOGO: peso de 10%.
-    const xgPorJogo = jogos > 0 ? p.xg / jogos : 0;
-
-    const scoreXg = limitarPontuacao(
-        (xgPorJogo / 0.5) * 100
-    );
-
-    // 4. DESEMPENHO EM DESARMES: peso de 10%.
-    const desPorJogo = jogos > 0 ? p.des / jogos : 0;
-
-    const scoreDesarmes = limitarPontuacao(
-        (desPorJogo / 5) * 100
-    );
-
-    // 5. PARTICIPAÇÃO COMO HOMEM DO JOGO: peso de 15%.
-    const hdjPorJogo = jogos > 0 ? p.hdj / jogos : 0;
-
-    const scoreHdj = limitarPontuacao(
-        (hdjPorJogo / 0.3) * 100
-    );
-
-    // Nota de desempenho antes da avaliação financeira.
-    let scoreDesempenho =
-        (scoreClassificacao * 0.45) +
-        (scoreGols90 * 0.20) +
-        (scoreXg * 0.10) +
-        (scoreDesarmes * 0.10) +
-        (scoreHdj * 0.15);
-
-    // ========================================================
-    // AJUSTE DE CUSTO-BENEFÍCIO
-    // ========================================================
-
-    let ajusteFinanceiro = 0;
-
-    if (p.valorNumerico > 0) {
-
-        if (p.valorNumerico <= 1000000) {
-            ajusteFinanceiro = 4;
-
-        } else if (p.valorNumerico <= 3000000) {
-            ajusteFinanceiro = 2;
-
-        } else if (p.valorNumerico <= 8000000) {
-            ajusteFinanceiro = 0;
-
-        } else if (p.valorNumerico <= 15000000) {
-            ajusteFinanceiro = -2;
-
-        } else {
-            ajusteFinanceiro = -5;
-        }
-
-        // Jogador muito caro precisa justificar o investimento.
-        if (p.valorNumerico > 10000000 && scoreDesempenho < 60) {
-            ajusteFinanceiro -= 5;
-        }
-    }
-
-    let score = scoreDesempenho + ajusteFinanceiro;
-
-    // ========================================================
-    // CONFIABILIDADE DA AMOSTRA
-    // ========================================================
-
-    // O jogador precisa de aproximadamente 25 jogos
-    // para que sua pontuação não sofra redução por amostra pequena.
-    const confiabilidade = Math.min(jogos / 25, 1);
-
-    // Aproxima a pontuação de 50 quando há poucos jogos.
-    score = 50 + ((score - 50) * confiabilidade);
-
-    // Limita o resultado entre 0 e 100.
-    score = Math.max(0, Math.min(100, score));
-
-    return Math.round(score * 10) / 10;
+function arredondar(valor) {
+    return Math.round(valor * 10) / 10;
 }
 
 // ============================================================
-// CLASSIFICAÇÃO VISUAL DO SCORE
+// NORMALIZAÇÃO DAS MÉTRICAS
+// ============================================================
+
+// Transforma uma métrica em nota de 0 a 100.
+// maior = true: quanto maior o valor, melhor.
+// maior = false: quanto menor o valor, melhor.
+function normalizarMetrica(valor, referencia, maior = true) {
+    if (
+        valor === null ||
+        valor === undefined ||
+        Number.isNaN(Number(valor))
+    ) {
+        return null;
+    }
+
+    let nota = (Number(valor) / referencia) * 100;
+
+    if (!maior) {
+        nota = 100 - nota;
+    }
+
+    return limitarPontuacao(nota);
+}
+
+// Calcula uma média ponderada ignorando métricas ausentes.
+function calcularMediaPonderada(metricas) {
+    let somaNotas = 0;
+    let somaPesos = 0;
+
+    metricas.forEach(metrica => {
+        if (metrica.nota === null || metrica.nota === undefined) {
+            return;
+        }
+
+        somaNotas += metrica.nota * metrica.peso;
+        somaPesos += metrica.peso;
+    });
+
+    if (somaPesos === 0) return null;
+
+    return somaNotas / somaPesos;
+}
+
+// ============================================================
+// SCORE DE DESEMPENHO POR CATEGORIA
+// ============================================================
+
+function calcularScoreGoleiro(p) {
+    return calcularMediaPonderada([
+        {
+            nota: normalizarMetrica(p.clMed, 8.0),
+            peso: 35
+        },
+        {
+            // Menos gols sofridos por 90 minutos é melhor.
+            nota: normalizarMetrica(p.sof90, 1.0, false),
+            peso: 30
+        },
+        {
+            nota: normalizarMetrica(p.percPenDef, 50),
+            peso: 20
+        },
+        {
+            nota: normalizarMetrica(p.consistencia, 20),
+            peso: 10
+        },
+        {
+            nota: normalizarMetrica(p.penDefendidos, 5),
+            peso: 5
+        }
+    ]);
+}
+
+function calcularScoreDefensor(p) {
+    return calcularMediaPonderada([
+        {
+            nota: normalizarMetrica(p.clMed, 8.0),
+            peso: 30
+        },
+        {
+            nota: normalizarMetrica(p.des, 5),
+            peso: 25
+        },
+        {
+            nota: normalizarMetrica(p.mDes, 80),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.psC, 90),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.consistencia, 20),
+            peso: 10
+        },
+        {
+            // Cartões vermelhos são penalizados.
+            nota: normalizarMetrica(p.vermelhos, 3, false),
+            peso: 5
+        }
+    ]);
+}
+
+function calcularScoreMeioCampista(p) {
+    return calcularMediaPonderada([
+        {
+            nota: normalizarMetrica(p.clMed, 8.0),
+            peso: 25
+        },
+        {
+            nota: normalizarMetrica(p.psC, 90),
+            peso: 20
+        },
+        {
+            nota: normalizarMetrica(p.gls90, 0.5),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.xg, 10),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.des, 5),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.consistencia, 20),
+            peso: 10
+        }
+    ]);
+}
+
+function calcularScoreAtacante(p) {
+    return calcularMediaPonderada([
+        {
+            nota: normalizarMetrica(p.clMed, 8.0),
+            peso: 25
+        },
+        {
+            nota: normalizarMetrica(p.gls90, 0.8),
+            peso: 25
+        },
+        {
+            nota: normalizarMetrica(p.xg, 15),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.assis90, 0.5),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.ast, 15),
+            peso: 10
+        },
+        {
+            nota: normalizarMetrica(p.consistencia, 20),
+            peso: 10
+        }
+    ]);
+}
+
+// ============================================================
+// SELEÇÃO DO CÁLCULO POR CATEGORIA
+// ============================================================
+
+function calcularScoreDesempenho(p) {
+    let resultado = null;
+
+    switch (p.categoria) {
+        case 'goleiro':
+            resultado = calcularScoreGoleiro(p);
+            break;
+
+        case 'defensor':
+            resultado = calcularScoreDefensor(p);
+            break;
+
+        case 'meio-campista':
+            resultado = calcularScoreMeioCampista(p);
+            break;
+
+        case 'atacante':
+            resultado = calcularScoreAtacante(p);
+            break;
+
+        default:
+            // Compatibilidade com análises antigas.
+            resultado = calcularMediaPonderada([
+                {
+                    nota: normalizarMetrica(p.clMed, 8.0),
+                    peso: 50
+                },
+                {
+                    nota: normalizarMetrica(p.gls90, 0.8),
+                    peso: 25
+                },
+                {
+                    nota: normalizarMetrica(p.xg, 10),
+                    peso: 15
+                },
+                {
+                    nota: normalizarMetrica(p.hdj, 10),
+                    peso: 10
+                }
+            ]);
+    }
+
+    // Sem estatísticas suficientes, não inventa uma nota.
+    return resultado === null ? 50 : limitarPontuacao(resultado);
+}
+
+// ============================================================
+// SCORE FINANCEIRO
+// ============================================================
+
+function calcularScoreFinanceiro(p) {
+    let scoreValor = 50;
+
+    if (p.valorNumerico !== null && p.valorNumerico !== undefined) {
+        const valor = p.valorNumerico;
+
+        if (valor === 0) {
+            scoreValor = 100;
+        } else if (valor <= 1000000) {
+            scoreValor = 95;
+        } else if (valor <= 3000000) {
+            scoreValor = 90;
+        } else if (valor <= 5000000) {
+            scoreValor = 82;
+        } else if (valor <= 8000000) {
+            scoreValor = 75;
+        } else if (valor <= 15000000) {
+            scoreValor = 65;
+        } else if (valor <= 25000000) {
+            scoreValor = 50;
+        } else if (valor <= 50000000) {
+            scoreValor = 35;
+        } else {
+            scoreValor = 20;
+        }
+    }
+
+    // Idade só influencia a avaliação financeira.
+    // Ela não reduz a nota de desempenho esportivo.
+    let scoreIdade = null;
+
+    if (p.idade !== null && p.idade !== undefined) {
+        if (p.idade <= 21) {
+            scoreIdade = 100;
+        } else if (p.idade <= 24) {
+            scoreIdade = 90;
+        } else if (p.idade <= 27) {
+            scoreIdade = 80;
+        } else if (p.idade <= 30) {
+            scoreIdade = 65;
+        } else if (p.idade <= 33) {
+            scoreIdade = 45;
+        } else {
+            scoreIdade = 30;
+        }
+    }
+
+    const metricas = [
+        {
+            nota: scoreValor,
+            peso: 75
+        },
+        {
+            nota: scoreIdade,
+            peso: 25
+        }
+    ];
+
+    return arredondar(calcularMediaPonderada(metricas));
+}
+
+// ============================================================
+// SCORE FINAL MONEYBALL
+// ============================================================
+
+function calculateMoneyballScore(p) {
+    const desempenho = calcularScoreDesempenho(p);
+    const financeiro = calcularScoreFinanceiro(p);
+
+    // O desempenho tem maior influência no resultado final.
+    const scoreFinal =
+        (desempenho * 0.75) +
+        (financeiro * 0.25);
+
+    return arredondar(limitarPontuacao(scoreFinal));
+}
+
+// ============================================================
+// CLASSIFICAÇÃO VISUAL
 // ============================================================
 
 function getScoreClass(score) {
     if (score <= 40) return 'score-red';
     if (score <= 55) return 'score-orange';
     if (score <= 70) return 'score-yellow';
+
     return 'score-green';
 }
 
 // ============================================================
-// ANÁLISE DOS JOGADORES
+// RECOMENDAÇÃO
+// ============================================================
+
+function obterRecomendacao(p) {
+    const score = p.moneyballScore;
+    const valor = p.valorNumerico;
+
+    if (score >= 80 && valor !== null && valor <= 8000000) {
+        return {
+            recommendation: 'Oportunidade de Mercado',
+            badgeClass: 'opportunity'
+        };
+    }
+
+    if (score >= 85) {
+        return {
+            recommendation: 'Jogador de Alto Nível',
+            badgeClass: 'premium'
+        };
+    }
+
+    if (score >= 72) {
+        return {
+            recommendation: 'Bom Jogador',
+            badgeClass: 'success'
+        };
+    }
+
+    if (score <= 40) {
+        return {
+            recommendation: 'Baixa Prioridade',
+            badgeClass: 'danger'
+        };
+    }
+
+    if (score <= 55) {
+        return {
+            recommendation: 'Custo-Benefício Duvidoso',
+            badgeClass: 'warning'
+        };
+    }
+
+    return {
+        recommendation: 'Observar',
+        badgeClass: 'warning'
+    };
+}
+
+// ============================================================
+// ANÁLISE COMPLETA DOS JOGADORES
 // ============================================================
 
 function analyzePlayers(rawPlayers) {
     const analyzedPlayers = rawPlayers.map((p, index) => {
+        const scoreDesempenho = arredondar(
+            calcularScoreDesempenho(p)
+        );
 
-        const mbScore = calculateMoneyballScore(p);
+        const scoreFinanceiro = calcularScoreFinanceiro(p);
 
-        let recommendation = 'Observar';
-        let badgeClass = 'warning';
+        const moneyballScore = arredondar(
+            (scoreDesempenho * 0.75) +
+            (scoreFinanceiro * 0.25)
+        );
 
-        // Oportunidade de mercado: desempenho muito bom
-        // e valor relativamente acessível.
-        if (
-            mbScore >= 78 &&
-            p.valorNumerico > 0 &&
-            p.valorNumerico <= 8000000
-        ) {
-            recommendation = 'Oportunidade de Mercado';
-            badgeClass = 'opportunity';
-
-        } else if (mbScore >= 85) {
-            recommendation = 'Jogador de Alto Nível';
-            badgeClass = 'premium';
-
-        } else if (
-            mbScore >= 71 &&
-            p.valorNumerico > 0 &&
-            p.valorNumerico <= 15000000
-        ) {
-            recommendation = 'Bom Custo-Benefício';
-            badgeClass = 'success';
-
-        } else if (mbScore <= 40) {
-            recommendation = 'Baixa Prioridade';
-            badgeClass = 'danger';
-
-        } else if (mbScore <= 55) {
-            recommendation = 'Custo-Benefício Duvidoso';
-            badgeClass = 'warning';
-        }
-
-        return {
-            id: index + 1,
+        const jogador = {
             ...p,
 
-            moneyballScore: mbScore,
-            scoreClass: getScoreClass(mbScore),
+            id: index + 1,
 
-            recommendation,
-            badgeClass,
+            scoreDesempenho,
+            scoreFinanceiro,
+            moneyballScore,
 
-            poucosJogos: p.totalJogos < 10
+            scoreClass: getScoreClass(moneyballScore),
+
+            poucosJogos: false
         };
+
+        const recomendacao = obterRecomendacao(jogador);
+
+        jogador.recommendation = recomendacao.recommendation;
+        jogador.badgeClass = recomendacao.badgeClass;
+
+        return jogador;
     });
 
     analyzedPlayers.sort(

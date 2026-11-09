@@ -14,11 +14,76 @@ const totalPlayers = document.getElementById('totalPlayers');
 const searchInput = document.getElementById('searchInput');
 
 // ============================================================
+// COLUNAS DA TABELA
+// ============================================================
+
+const tableColumns = [
+    { key: 'nome', label: 'Nome', type: 'text' },
+    { key: 'categoriaLabel', label: 'Categoria', type: 'text' },
+    { key: 'posicao', label: 'Posição', type: 'text' },
+    { key: 'idade', label: 'Idade', type: 'number' },
+    { key: 'nac', label: 'Nacionalidade', type: 'text' },
+    { key: 'clube', label: 'Clube', type: 'text' },
+    { key: 'valorNumerico', label: 'Valor', type: 'money' },
+
+    { key: 'sof90', label: 'Sof/90', type: 'number' },
+    { key: 'penDefendidos', label: 'Pen. Def.', type: 'number' },
+    { key: 'percPenDef', label: '% Pen. Def.', type: 'percent' },
+
+    { key: 'des', label: 'Desarmes', type: 'number' },
+    { key: 'mDes', label: '% Desarmes', type: 'percent' },
+    { key: 'vermelhos', label: 'Vermelhos', type: 'number' },
+
+    { key: 'psC', label: '% Passes Certos', type: 'percent' },
+    { key: 'gls90', label: 'Gols/90', type: 'number' },
+    { key: 'xg', label: 'xG', type: 'number' },
+    { key: 'ast', label: 'Assistências', type: 'number' },
+    { key: 'assis90', label: 'Assis/90', type: 'number' },
+
+    { key: 'atTa', label: 'Ataque Tático', type: 'number' },
+    { key: 'penR', label: 'Pen/R', type: 'text' },
+
+    { key: 'consistencia', label: 'Consistência', type: 'number' },
+    { key: 'clMed', label: 'Cl. Média', type: 'number' },
+
+    { key: 'scoreDesempenho', label: 'Score Desempenho', type: 'score' },
+    { key: 'scoreFinanceiro', label: 'Score Financeiro', type: 'score' },
+    { key: 'moneyballScore', label: 'Score Final', type: 'score' },
+    { key: 'recommendation', label: 'Avaliação Moneyball', type: 'recommendation' }
+];
+
+// ============================================================
+// CRIAÇÃO DO CABEÇALHO DA TABELA
+// ============================================================
+
+function criarCabecalhoTabela() {
+    const table = playersTableBody.closest('table');
+
+    if (!table) return;
+
+    const thead = table.querySelector('thead');
+
+    if (!thead) return;
+
+    thead.innerHTML = `
+        <tr>
+            ${tableColumns.map(column => `
+                <th
+                    onclick="sortData('${column.key}')"
+                    title="Clique para ordenar por ${escapeHtml(column.label)}."
+                >
+                    ${escapeHtml(column.label)} ↕
+                </th>
+            `).join('')}
+        </tr>
+    `;
+}
+
+// ============================================================
 // EVENTOS DO UPLOAD
 // ============================================================
 
 dropZone.addEventListener('click', event => {
-    // O clique do próprio input não deve abrir o seletor novamente.
     if (event.target === fileInput) return;
 
     fileInput.click();
@@ -67,7 +132,74 @@ function escapeHtml(value) {
 }
 
 // ============================================================
-// LEITURA E ANÁLISE DO ARQUIVO NO PRÓPRIO NAVEGADOR
+// FORMATAÇÃO DOS VALORES
+// ============================================================
+
+function formatarNumero(valor) {
+    if (valor === null || valor === undefined || valor === '') {
+        return '-';
+    }
+
+    const numero = Number(valor);
+
+    if (Number.isNaN(numero)) return '-';
+
+    return numero.toLocaleString('pt-BR', {
+        maximumFractionDigits: 2
+    });
+}
+
+function formatarDinheiro(valor) {
+    if (valor === null || valor === undefined) {
+        return '-';
+    }
+
+    const numero = Number(valor);
+
+    if (Number.isNaN(numero)) return '-';
+
+    if (numero >= 1000000) {
+        return 'R$ ' + (numero / 1000000).toLocaleString('pt-BR', {
+            maximumFractionDigits: 2
+        }) + ' mi';
+    }
+
+    if (numero >= 1000) {
+        return 'R$ ' + (numero / 1000).toLocaleString('pt-BR', {
+            maximumFractionDigits: 1
+        }) + ' mil';
+    }
+
+    return 'R$ ' + numero.toLocaleString('pt-BR', {
+        maximumFractionDigits: 0
+    });
+}
+
+function formatarCelula(jogador, coluna) {
+    const valor = jogador[coluna.key];
+
+    if (valor === null || valor === undefined || valor === '') {
+        return '-';
+    }
+
+    switch (coluna.type) {
+        case 'money':
+            return formatarDinheiro(valor);
+
+        case 'number':
+        case 'percent':
+            return formatarNumero(valor);
+
+        case 'score':
+            return formatarNumero(valor);
+
+        default:
+            return String(valor);
+    }
+}
+
+// ============================================================
+// LEITURA E ANÁLISE DO ARQUIVO
 // ============================================================
 
 async function handleUpload(file) {
@@ -89,6 +221,16 @@ async function handleUpload(file) {
             return;
         }
 
+        const categorias = [
+            ...new Set(rawPlayers.map(p => p.categoria))
+        ];
+
+        if (categorias.includes('desconhecido')) {
+            console.warn(
+                'Um ou mais jogadores foram importados sem categoria reconhecida.'
+            );
+        }
+
         allPlayers = analyzePlayers(rawPlayers);
 
         currentSortColumn = 'moneyballScore';
@@ -101,7 +243,11 @@ async function handleUpload(file) {
         try {
             await salvarAnaliseLocal(allPlayers);
         } catch (storageError) {
-            console.error('Não foi possível salvar no armazenamento local:', storageError);
+            console.error(
+                'Não foi possível salvar no armazenamento local:',
+                storageError
+            );
+
             alert(
                 'A análise foi realizada, mas o navegador não conseguiu salvá-la localmente. ' +
                 'Você ainda pode consultar os resultados nesta página.'
@@ -110,12 +256,40 @@ async function handleUpload(file) {
 
     } catch (error) {
         console.error('Erro na análise:', error);
+
         alert('Erro ao processar o arquivo HTML: ' + error.message);
 
     } finally {
-        // Permite selecionar novamente o mesmo arquivo.
         fileInput.value = '';
     }
+}
+
+// ============================================================
+// ÍCONES E CLASSES DAS RECOMENDAÇÕES
+// ============================================================
+
+function obterIconeRecomendacao(badgeClass) {
+    const icones = {
+        opportunity: '<i class="fa-solid fa-gem"></i>',
+        premium: '<i class="fa-solid fa-star"></i>',
+        success: '<i class="fa-solid fa-thumbs-up"></i>',
+        danger: '<i class="fa-solid fa-ban"></i>',
+        warning: '<i class="fa-solid fa-eye"></i>'
+    };
+
+    return icones[badgeClass] || icones.warning;
+}
+
+function obterClasseBadge(badgeClass) {
+    const classes = {
+        opportunity: 'badge-opportunity',
+        premium: 'badge-premium',
+        success: 'badge-success',
+        warning: 'badge-warning',
+        danger: 'badge-danger'
+    };
+
+    return classes[badgeClass] || 'badge-warning';
 }
 
 // ============================================================
@@ -125,98 +299,64 @@ async function handleUpload(file) {
 function renderTable(players) {
     totalPlayers.innerText = players.length;
 
-    playersTableBody.innerHTML = players.map(p => {
+    playersTableBody.innerHTML = players.map(jogador => {
+        const celulas = tableColumns.map(coluna => {
+            const valor = formatarCelula(jogador, coluna);
 
-        let recommendationIcon = '';
+            if (coluna.type === 'score') {
+                const score = Number(jogador[coluna.key] ?? 0);
+                const scoreClass = getScoreClass(score);
 
-        if (p.badgeClass === 'opportunity') {
-            recommendationIcon = '<i class="fa-solid fa-gem"></i>';
+                return `
+                    <td>
+                        <span class="score-badge ${scoreClass}">
+                            ${escapeHtml(valor)}
+                        </span>
+                    </td>
+                `;
+            }
 
-        } else if (p.badgeClass === 'premium') {
-            recommendationIcon = '<i class="fa-solid fa-star"></i>';
+            if (coluna.type === 'recommendation') {
+                return `
+                    <td>
+                        <span class="market-badge ${obterClasseBadge(jogador.badgeClass)}">
+                            ${obterIconeRecomendacao(jogador.badgeClass)}
+                            ${escapeHtml(valor)}
+                        </span>
+                    </td>
+                `;
+            }
 
-        } else if (p.badgeClass === 'success') {
-            recommendationIcon = '<i class="fa-solid fa-thumbs-up"></i>';
+            if (coluna.key === 'nome') {
+                return `
+                    <td class="fw-bold text-start ps-3 text-white">
+                        ${escapeHtml(valor)}
+                    </td>
+                `;
+            }
 
-        } else if (p.badgeClass === 'danger') {
-            recommendationIcon = '<i class="fa-solid fa-ban"></i>';
+            if (coluna.key === 'valorNumerico') {
+                return `
+                    <td>
+                        <span class="valor-badge">
+                            ${escapeHtml(valor)}
+                        </span>
+                    </td>
+                `;
+            }
 
-        } else {
-            recommendationIcon = '<i class="fa-solid fa-eye"></i>';
-        }
+            if (coluna.key === 'clMed') {
+                return `
+                    <td class="fw-semibold text-white">
+                        ${escapeHtml(valor)}
+                    </td>
+                `;
+            }
 
-        const scoreClass = [
-            'score-red',
-            'score-orange',
-            'score-yellow',
-            'score-green'
-        ].includes(p.scoreClass) ? p.scoreClass : 'score-red';
+            return `<td>${escapeHtml(valor)}</td>`;
+        }).join('');
 
-        const badgeClass = [
-            'opportunity',
-            'premium',
-            'success',
-            'warning',
-            'danger'
-        ].includes(p.badgeClass) ? p.badgeClass : 'warning';
-
-        const badgeStyle = {
-            opportunity: 'badge-opportunity',
-            premium: 'badge-premium',
-            success: 'badge-success',
-            warning: 'badge-warning',
-            danger: 'badge-danger'
-        }[badgeClass];
-
-        return `
-            <tr>
-                <td class="fw-bold text-start ps-3 text-white">
-                    ${escapeHtml(p.nome)}
-                    ${p.poucosJogos
-                        ? '<span class="badge bg-secondary ms-1" style="font-size: 9px;" title="Amostra baixa">Poucos Jogos</span>'
-                        : ''
-                    }
-                </td>
-
-                <td>${escapeHtml(p.nac)}</td>
-
-                <td class="text-secondary">
-                    ${escapeHtml(p.clube)}
-                </td>
-
-                <td>${escapeHtml(p.idade ?? '-')}</td>
-
-                <td>${escapeHtml(p.jogosStr)}</td>
-                <td>${escapeHtml(p.gls)}</td>
-                <td>${escapeHtml(p.ast)}</td>
-                <td>${escapeHtml(p.gls90)}</td>
-                <td>${escapeHtml(p.xg)}</td>
-                <td>${escapeHtml(p.hdj)}</td>
-
-                <td class="fw-semibold text-white">
-                    ${escapeHtml(p.clMed)}
-                </td>
-
-                <td>
-                    <span class="valor-badge">
-                        ${escapeHtml(p.valorStr)}
-                    </span>
-                </td>
-
-                <td>
-                    <span class="score-badge ${scoreClass}">
-                        ${escapeHtml(p.moneyballScore)}
-                    </span>
-                </td>
-
-                <td>
-                    <span class="market-badge ${badgeStyle}">
-                        ${recommendationIcon}
-                        ${escapeHtml(p.recommendation)}
-                    </span>
-                </td>
-            </tr>
-        `;
+        return `<tr>${celulas}</tr>`;
     }).join('');
 }
 
@@ -233,35 +373,38 @@ function sortData(column) {
     }
 
     allPlayers.sort((a, b) => {
-        let valA = a[column];
-        let valB = b[column];
+        const valA = a[column];
+        const valB = b[column];
 
-        // Idades ausentes ficam no final da lista.
-        if (column === 'idade') {
-            if (valA === null || valA === undefined) {
-                return 1;
-            }
+        const ausenteA = valA === null || valA === undefined || valA === '';
+        const ausenteB = valB === null || valB === undefined || valB === '';
 
-            if (valB === null || valB === undefined) {
-                return -1;
-            }
+        // Dados ausentes sempre ficam no final.
+        if (ausenteA && !ausenteB) return 1;
+        if (!ausenteA && ausenteB) return -1;
+        if (ausenteA && ausenteB) return 0;
+
+        let comparacao;
+
+        if (
+            typeof valA === 'number' ||
+            typeof valB === 'number'
+        ) {
+            comparacao = Number(valA) - Number(valB);
+        } else {
+            comparacao = String(valA).localeCompare(
+                String(valB),
+                'pt-BR',
+                { sensitivity: 'base' }
+            );
         }
 
-        if (typeof valA === 'string') {
-            valA = valA.toLowerCase();
-            valB = String(valB ?? '').toLowerCase();
-        }
-
-        if (valA < valB) return sortAscending ? -1 : 1;
-        if (valA > valB) return sortAscending ? 1 : -1;
-
-        return 0;
+        return sortAscending ? comparacao : -comparacao;
     });
 
     aplicarPesquisa();
 }
 
-// Mantém a função disponível para os onclick do HTML.
 window.sortData = sortData;
 
 // ============================================================
@@ -269,12 +412,25 @@ window.sortData = sortData;
 // ============================================================
 
 function aplicarPesquisa() {
-    const query = searchInput.value.toLowerCase().trim();
+    const query = searchInput.value
+        .toLowerCase()
+        .trim();
 
-    const filtered = allPlayers.filter(p =>
-        String(p.nome).toLowerCase().includes(query) ||
-        String(p.clube).toLowerCase().includes(query)
-    );
+    const filtered = allPlayers.filter(jogador => {
+        const camposPesquisa = [
+            jogador.nome,
+            jogador.nac,
+            jogador.clube,
+            jogador.posicao,
+            jogador.categoriaLabel
+        ];
+
+        return camposPesquisa.some(campo =>
+            String(campo ?? '')
+                .toLowerCase()
+                .includes(query)
+        );
+    });
 
     renderTable(filtered);
 }
@@ -282,7 +438,7 @@ function aplicarPesquisa() {
 searchInput.addEventListener('input', aplicarPesquisa);
 
 // ============================================================
-// RECUPERA A ÚLTIMA ANÁLISE AO ABRIR O SITE
+// RECUPERA A ÚLTIMA ANÁLISE
 // ============================================================
 
 async function restaurarUltimaAnalise() {
@@ -291,12 +447,22 @@ async function restaurarUltimaAnalise() {
 
         if (Array.isArray(savedPlayers) && savedPlayers.length > 0) {
             allPlayers = savedPlayers;
+
             renderTable(allPlayers);
+
             resultsSection.classList.remove('d-none');
         }
     } catch (error) {
-        console.error('Não foi possível recuperar a análise local:', error);
+        console.error(
+            'Não foi possível recuperar a análise local:',
+            error
+        );
     }
 }
 
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+
+criarCabecalhoTabela();
 restaurarUltimaAnalise();
