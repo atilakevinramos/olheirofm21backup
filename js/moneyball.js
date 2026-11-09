@@ -1,3 +1,4 @@
+
 // ============================================================
 // ALGORITMO MONEYBALL - FM21
 // ============================================================
@@ -103,23 +104,26 @@ function verificarDadosSuficientes(p) {
             ]
         },
 
+        // Novo modelo de meias.
         'meio-campista': {
             metricas: [
                 'clMed',
                 'psC',
-                'cabPct',
-                'mDes',
-                'vermelhos',
+                'assis90',
+                'drbpj',
+                'xg',
                 'consistencia'
             ],
             minimo: 3,
             metricasEspecificas: [
                 'psC',
-                'cabPct',
-                'mDes'
+                'assis90',
+                'drbpj',
+                'xg'
             ]
         },
 
+        // Volantes continuam com o modelo defensivo.
         volante: {
             metricas: [
                 'clMed',
@@ -319,31 +323,31 @@ function calcularScoreDefensor(p) {
     ]);
 }
 
-// Meias: maior foco em passe e desempenho técnico.
+// Meias: foco em criação, passe e contribuição ofensiva.
 function calcularScoreMeioCampista(p) {
     return calcularMediaPonderada([
         {
             nota: normalizarMetrica(p.clMed, 8.0),
-            peso: 35
-        },
-        {
-            nota: normalizarMetrica(p.psC, 90),
             peso: 30
         },
         {
-            nota: normalizarMetrica(p.mDes, 80),
+            nota: normalizarMetrica(p.psC, 90),
+            peso: 20
+        },
+        {
+            nota: normalizarMetrica(p.assis90, 0.5),
+            peso: 20
+        },
+        {
+            nota: normalizarMetrica(p.drbpj, 1.0),
             peso: 15
         },
         {
-            nota: normalizarMetrica(p.cabPct, 50),
+            nota: normalizarMetrica(p.xg, 3.0),
             peso: 10
         },
         {
             nota: normalizarMetrica(p.consistencia, 20),
-            peso: 5
-        },
-        {
-            nota: normalizarMetrica(p.vermelhos, 3, false),
             peso: 5
         }
     ]);
