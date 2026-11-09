@@ -59,15 +59,6 @@ function calcularMediaPonderada(metricas) {
 // VALIDAÇÃO DOS DADOS POR CATEGORIA
 // ============================================================
 
-// Algumas estatísticas podem não aparecer no relatório porque
-// o jogador não teve oportunidades de registrá-las.
-//
-// Por isso, não exigimos todas as estatísticas do modelo.
-// Exigimos apenas uma quantidade mínima de métricas principais.
-//
-// Um valor igual a zero é considerado válido.
-// Apenas null, undefined ou valores inválidos são ignorados.
-
 function possuiMetricaValida(jogador, campo) {
     const valor = jogador[campo];
 
@@ -85,9 +76,19 @@ function verificarDadosSuficientes(p) {
             metricas: [
                 'clMed',
                 'sof90',
+                'percPenDef',
+                'penDefendidos',
                 'consistencia'
             ],
-            minimo: 2
+            minimo: 2,
+
+            // Um goleiro precisa ter pelo menos uma estatística
+            // específica da posição para receber uma avaliação.
+            metricasEspecificas: [
+                'sof90',
+                'percPenDef',
+                'penDefendidos'
+            ]
         },
 
         defensor: {
@@ -96,9 +97,19 @@ function verificarDadosSuficientes(p) {
                 'des',
                 'mDes',
                 'psC',
-                'consistencia'
+                'consistencia',
+                'vermelhos'
             ],
-            minimo: 3
+            minimo: 3,
+
+            // Um defensor precisa ter ao menos uma estatística
+            // defensiva ou de construção para ser avaliado.
+            metricasEspecificas: [
+                'des',
+                'mDes',
+                'psC',
+                'vermelhos'
+            ]
         },
 
         'meio-campista': {
@@ -108,7 +119,9 @@ function verificarDadosSuficientes(p) {
                 'gls90',
                 'xg',
                 'des',
-                'consistencia'
+                'consistencia',
+                'ast',
+                'assis90'
             ],
             minimo: 3
         },
@@ -132,7 +145,22 @@ function verificarDadosSuficientes(p) {
         return {
             suficiente: false,
             metricasDisponiveis: 0,
-            minimoNecessario: 0
+            minimoNecessario: 0,
+            motivo: 'Categoria não identificada'
+        };
+    }
+
+    // Se o arquivo informa que o jogador não disputou partidas,
+    // não devemos calcular uma nota de desempenho.
+    if (
+        p.jogosInformados === true &&
+        Number(p.totalJogos) === 0
+    ) {
+        return {
+            suficiente: false,
+            metricasDisponiveis: 0,
+            minimoNecessario: criterio.minimo,
+            motivo: 'Sem partidas disputadas'
         };
     }
 
@@ -140,10 +168,86 @@ function verificarDadosSuficientes(p) {
         possuiMetricaValida(p, campo)
     ).length;
 
+    // Verifica se há ao menos uma métrica específica da posição.
+    if (criterio.metricasEspecificas) {
+        const possuiMetricaEspecifica =
+            criterio.metricasEspecificas.some(campo =>
+                possuiMetricaValida(p, campo)
+            );
+
+        if (!possuiMetricaEspecifica) {
+            return {
+                suficiente: false,
+                metricasDisponiveis,
+                minimoNecessario: criterio.minimo,
+                motivo: 'Faltam estatísticas específicas da posição'
+            };
+        }
+    }
+
     return {
         suficiente: metricasDisponiveis >= criterio.minimo,
         metricasDisponiveis,
-        minimoNecessario: criterio.minimo
+        minimoNecessario: criterio.minimo,
+        motivo: metricasDisponiveis >= criterio.minimo
+            ? ''
+            : 'Poucas métricas disponíveis'
+    };
+}
+
+// ============================================================
+// CONFIABILIDADE DA AMOSTRA DE JOGOS
+// ============================================================
+
+function obterConfiabilidadeJogos(p) {
+    // Exportações antigas podem não possuir a coluna Jogos.
+    // Nesse caso, não presumimos que o jogador tenha zero partidas.
+    if (p.jogosInformados !== true) {
+        return {
+            nivel: 'desconhecida',
+            descricao: 'Jogos não informados',
+            recomendacaoPermitida: true
+        };
+    }
+
+    const jogos = Number(p.totalJogos) || 0;
+
+    if (jogos === 0) {
+        return {
+            nivel: 'sem-jogos',
+            descricao: 'Sem partidas',
+            recomendacaoPermitida: false
+        };
+    }
+
+    if (jogos <= 4) {
+        return {
+            nivel: 'muito-pequena',
+            descricao: 'Amostra muito pequena',
+            recomendacaoPermitida: false
+        };
+    }
+
+    if (jogos <= 9) {
+        return {
+            nivel: 'limitada',
+            descricao: 'Amostra limitada',
+            recomendacaoPermitida: false
+        };
+    }
+
+    if (jogos <= 19) {
+        return {
+            nivel: 'razoavel',
+            descricao: 'Amostra razoável',
+            recomendacaoPermitida: true
+        };
+    }
+
+    return {
+        nivel: 'consistente',
+        descricao: 'Amostra consistente',
+        recomendacaoPermitida: true
     };
 }
 
@@ -270,8 +374,6 @@ function calcularScoreAtacante(p) {
 // ============================================================
 
 function calcularScoreDesempenho(p) {
-    // Antes de calcular a nota, verifica se existem estatísticas
-    // suficientes para fazer uma avaliação minimamente confiável.
     const validacao = verificarDadosSuficientes(p);
 
     if (!validacao.suficiente) {
@@ -386,7 +488,6 @@ function calculateMoneyballScore(p) {
 
     const financeiro = calcularScoreFinanceiro(p);
 
-    // O desempenho tem maior influência no resultado final.
     const scoreFinal =
         (desempenho * 0.75) +
         (financeiro * 0.25);
@@ -415,10 +516,27 @@ function getScoreClass(score) {
 // ============================================================
 
 function obterRecomendacao(p) {
-    // A validação acontece antes de qualquer recomendação.
+    const confiabilidade = obterConfiabilidadeJogos(p);
+
+    // Sem score de desempenho, não existe recomendação.
     if (p.moneyballScore === null || p.moneyballScore === undefined) {
         return {
             recommendation: 'Dados insuficientes',
+            badgeClass: 'warning'
+        };
+    }
+
+    // Poucas partidas impedem recomendações fortes.
+    if (confiabilidade.nivel === 'muito-pequena') {
+        return {
+            recommendation: 'Amostra muito pequena',
+            badgeClass: 'warning'
+        };
+    }
+
+    if (confiabilidade.nivel === 'limitada') {
+        return {
+            recommendation: 'Observar - amostra limitada',
             badgeClass: 'warning'
         };
     }
@@ -475,6 +593,8 @@ function analyzePlayers(rawPlayers) {
     const analyzedPlayers = rawPlayers.map((p, index) => {
         const validacao = verificarDadosSuficientes(p);
 
+        const confiabilidade = obterConfiabilidadeJogos(p);
+
         const scoreDesempenho = calcularScoreDesempenho(p);
 
         const scoreFinanceiro = calcularScoreFinanceiro(p);
@@ -500,8 +620,14 @@ function analyzePlayers(rawPlayers) {
             dadosSuficientes: validacao.suficiente,
             metricasDisponiveis: validacao.metricasDisponiveis,
             minimoMetricasNecessarias: validacao.minimoNecessario,
+            motivoDadosInsuficientes: validacao.motivo,
 
-            poucosJogos: false
+            confiabilidadeJogos: confiabilidade.nivel,
+            confiabilidadeDescricao: confiabilidade.descricao,
+
+            poucosJogos:
+                p.jogosInformados === true &&
+                Number(p.totalJogos) < 10
         };
 
         const recomendacao = obterRecomendacao(jogador);

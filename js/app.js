@@ -26,6 +26,8 @@ const colunasIdentificacao = [
     { key: 'nome', label: 'Nome', type: 'text' },
     { key: 'posicao', label: 'Posição', type: 'text' },
     { key: 'idade', label: 'Idade', type: 'number' },
+    { key: 'totalJogos', label: 'Jogos', type: 'number' },
+    { key: 'confiabilidadeDescricao', label: 'Confiabilidade', type: 'text' },
     { key: 'nac', label: 'Nacionalidade', type: 'text' },
     { key: 'clube', label: 'Clube', type: 'text' },
     { key: 'valorNumerico', label: 'Valor', type: 'money' }
@@ -244,7 +246,10 @@ async function handleUpload(file) {
     try {
         const fileContent = await file.text();
 
-        const rawPlayers = parseFMExport(fileContent);
+        // O nome do arquivo também é enviado ao parser.
+        // Isso permite identificar os novos modelos, que possuem
+        // os mesmos cabeçalhos.
+        const rawPlayers = parseFMExport(fileContent, file.name);
 
         if (rawPlayers.length === 0) {
             alert(

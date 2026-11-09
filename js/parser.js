@@ -60,17 +60,84 @@ function parseValor(valorStr) {
     return numero * multiplicador;
 }
 
-// Mantida para compatibilidade com exportações antigas.
+// ============================================================
+// LEITURA DOS JOGOS
+// ============================================================
+
+// Exemplos do Football Manager:
+//
+// "23 (1)" = 23 titularidades + 1 entrada como reserva
+// "13"     = 13 titularidades + 0 entradas como reserva
+// "0 (9)"  = 0 titularidades + 9 entradas como reserva
+// "-"      = nenhuma partida registrada
+//
+// Mantemos jogosInformados para distinguir:
+// - Coluna Jogos presente com "-": zero partidas.
+// - Coluna Jogos ausente em exportações antigas: informação desconhecida.
+
+function parseDetalhesJogos(jogosStr) {
+    if (jogosStr === null || jogosStr === undefined) {
+        return {
+            titular: 0,
+            reserva: 0,
+            total: null,
+            informado: false
+        };
+    }
+
+    const original = String(jogosStr).trim();
+
+    if (original === '') {
+        return {
+            titular: 0,
+            reserva: 0,
+            total: null,
+            informado: false
+        };
+    }
+
+    if (original === '-' || original === '- - -') {
+        return {
+            titular: 0,
+            reserva: 0,
+            total: 0,
+            informado: true
+        };
+    }
+
+    const correspondencia = original.match(
+        /^\s*(\d+)\s*(?:\(\s*(\d+)\s*\))?\s*$/
+    );
+
+    if (!correspondencia) {
+        return {
+            titular: 0,
+            reserva: 0,
+            total: null,
+            informado: false
+        };
+    }
+
+    const titular = Number(correspondencia[1]);
+    const reserva = correspondencia[2]
+        ? Number(correspondencia[2])
+        : 0;
+
+    return {
+        titular,
+        reserva,
+        total: titular + reserva,
+        informado: true
+    };
+}
+
+// Mantida para compatibilidade com outras partes do projeto.
 function parseTotalJogos(jogosStr) {
-    if (!jogosStr) return null;
+    const detalhes = parseDetalhesJogos(jogosStr);
 
-    const parts = String(jogosStr).split('(');
-    const titular = parseNum(parts[0]);
-    const reserva = parts[1] ? parseNum(parts[1]) : 0;
-
-    if (titular === null && reserva === null) return null;
-
-    return (titular || 0) + (reserva || 0);
+    return detalhes.informado
+        ? detalhes.total
+        : null;
 }
 
 function normalizeHeader(header) {
@@ -114,6 +181,37 @@ function textoPorAlias(row, aliases, padrao = '-') {
 // IDENTIFICAÇÃO AUTOMÁTICA DO MODELO
 // ============================================================
 
+// Os modelos novos possuem os mesmos cabeçalhos.
+// Por isso, usamos o nome do arquivo como identificação principal.
+
+function identificarCategoriaPorArquivo(nomeArquivo) {
+    const nome = normalizeHeader(nomeArquivo);
+
+    if (nome.includes('goleiro')) {
+        return 'goleiro';
+    }
+
+    if (nome.includes('defensor')) {
+        return 'defensor';
+    }
+
+    if (
+        nome.includes('meia') ||
+        nome.includes('meio-campista') ||
+        nome.includes('meio campista')
+    ) {
+        return 'meio-campista';
+    }
+
+    if (nome.includes('atacante')) {
+        return 'atacante';
+    }
+
+    return 'desconhecido';
+}
+
+// Identificação por cabeçalhos para manter compatibilidade
+// com exportações antigas.
 function identificarCategoria(headers) {
     const h = headers.map(normalizeHeader);
 
@@ -128,8 +226,7 @@ function identificarCategoria(headers) {
         return 'goleiro';
     }
 
-    // Atacantes: verificar antes dos meio-campistas,
-    // pois os dois modelos compartilham algumas estatísticas.
+    // Atacantes
     if (
         possui('atta') ||
         possui('assis/90') ||
@@ -163,8 +260,9 @@ function identificarCategoria(headers) {
 // LEITURA DO HTML EXPORTADO PELO FOOTBALL MANAGER
 // ============================================================
 
-function parseFMExport(fileContent) {
+function parseFMExport(fileContent, nomeArquivo = '') {
     const parser = new DOMParser();
+
     const documentHtml = parser.parseFromString(
         fileContent,
         'text/html'
@@ -177,7 +275,9 @@ function parseFMExport(fileContent) {
     const rows = Array.from(documentHtml.querySelectorAll('tr'));
 
     let headers = null;
-    let categoria = 'desconhecido';
+
+    // Primeiro tenta identificar pelo nome do arquivo.
+    let categoria = identificarCategoriaPorArquivo(nomeArquivo);
 
     const players = [];
 
@@ -202,7 +302,13 @@ function parseFMExport(fileContent) {
             if (!temNome || !temValor) continue;
 
             headers = cellTexts;
-            categoria = identificarCategoria(headers);
+
+            // Se o nome do arquivo não identificou a categoria,
+            // tenta usar os cabeçalhos dos modelos antigos.
+            if (categoria === 'desconhecido') {
+                categoria = identificarCategoria(headers);
+            }
+
             continue;
         }
 
@@ -227,7 +333,8 @@ function parseFMExport(fileContent) {
         const idadeTexto = textoPorAlias(rowData, ['idade'], '');
 
         const jogosStr = textoPorAlias(rowData, ['jogos'], '');
-        const totalJogos = parseTotalJogos(jogosStr);
+
+        const detalhesJogos = parseDetalhesJogos(jogosStr);
 
         const jogador = {
             // Identificação
@@ -248,9 +355,12 @@ function parseFMExport(fileContent) {
 
             idade: idadeTexto ? parseNum(idadeTexto) : null,
 
-            // Dados gerais
+            // Dados de jogos
             jogosStr,
-            totalJogos,
+            jogosTitular: detalhesJogos.titular,
+            jogosReserva: detalhesJogos.reserva,
+            totalJogos: detalhesJogos.total,
+            jogosInformados: detalhesJogos.informado,
 
             // Desempenho comum
             clMed: numeroPorAlias(rowData, [
