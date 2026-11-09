@@ -14,9 +14,6 @@ function arredondar(valor) {
 // NORMALIZAÇÃO DAS MÉTRICAS
 // ============================================================
 
-// Transforma uma métrica em nota de 0 a 100.
-// maior = true: quanto maior o valor, melhor.
-// maior = false: quanto menor o valor, melhor.
 function normalizarMetrica(valor, referencia, maior = true) {
     if (
         valor === null ||
@@ -36,7 +33,6 @@ function normalizarMetrica(valor, referencia, maior = true) {
     return limitarPontuacao(nota);
 }
 
-// Calcula uma média ponderada ignorando métricas ausentes.
 function calcularMediaPonderada(metricas) {
     let somaNotas = 0;
     let somaPesos = 0;
@@ -81,9 +77,6 @@ function verificarDadosSuficientes(p) {
                 'consistencia'
             ],
             minimo: 2,
-
-            // Um goleiro precisa ter pelo menos uma estatística
-            // específica da posição para receber uma avaliação.
             metricasEspecificas: [
                 'sof90',
                 'percPenDef',
@@ -97,18 +90,16 @@ function verificarDadosSuficientes(p) {
                 'des',
                 'mDes',
                 'psC',
+                'cabG90',
                 'consistencia',
                 'vermelhos'
             ],
             minimo: 3,
-
-            // Um defensor precisa ter ao menos uma estatística
-            // defensiva ou de construção para ser avaliado.
             metricasEspecificas: [
                 'des',
                 'mDes',
                 'psC',
-                'vermelhos'
+                'cabG90'
             ]
         },
 
@@ -116,14 +107,34 @@ function verificarDadosSuficientes(p) {
             metricas: [
                 'clMed',
                 'psC',
-                'gls90',
-                'xg',
-                'des',
-                'consistencia',
-                'ast',
-                'assis90'
+                'cabPct',
+                'mDes',
+                'vermelhos',
+                'consistencia'
             ],
-            minimo: 3
+            minimo: 3,
+            metricasEspecificas: [
+                'psC',
+                'cabPct',
+                'mDes'
+            ]
+        },
+
+        volante: {
+            metricas: [
+                'clMed',
+                'psC',
+                'cabPct',
+                'mDes',
+                'vermelhos',
+                'consistencia'
+            ],
+            minimo: 3,
+            metricasEspecificas: [
+                'psC',
+                'cabPct',
+                'mDes'
+            ]
         },
 
         atacante: {
@@ -150,8 +161,6 @@ function verificarDadosSuficientes(p) {
         };
     }
 
-    // Se o arquivo informa que o jogador não disputou partidas,
-    // não devemos calcular uma nota de desempenho.
     if (
         p.jogosInformados === true &&
         Number(p.totalJogos) === 0
@@ -168,7 +177,6 @@ function verificarDadosSuficientes(p) {
         possuiMetricaValida(p, campo)
     ).length;
 
-    // Verifica se há ao menos uma métrica específica da posição.
     if (criterio.metricasEspecificas) {
         const possuiMetricaEspecifica =
             criterio.metricasEspecificas.some(campo =>
@@ -200,8 +208,6 @@ function verificarDadosSuficientes(p) {
 // ============================================================
 
 function obterConfiabilidadeJogos(p) {
-    // Exportações antigas podem não possuir a coluna Jogos.
-    // Nesse caso, não presumimos que o jogador tenha zero partidas.
     if (p.jogosInformados !== true) {
         return {
             nivel: 'desconhecida',
@@ -262,7 +268,6 @@ function calcularScoreGoleiro(p) {
             peso: 35
         },
         {
-            // Menos gols sofridos por 90 minutos é melhor.
             nota: normalizarMetrica(p.sof90, 1.0, false),
             peso: 30
         },
@@ -285,33 +290,67 @@ function calcularScoreDefensor(p) {
     return calcularMediaPonderada([
         {
             nota: normalizarMetrica(p.clMed, 8.0),
-            peso: 30
-        },
-        {
-            nota: normalizarMetrica(p.des, 5),
             peso: 25
         },
         {
-            nota: normalizarMetrica(p.mDes, 80),
+            nota: normalizarMetrica(p.des, 3.0),
             peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.mDes, 90),
+            peso: 20
         },
         {
             nota: normalizarMetrica(p.psC, 90),
             peso: 15
         },
         {
+            nota: normalizarMetrica(p.cabG90, 0.25),
+            peso: 10
+        },
+        {
             nota: normalizarMetrica(p.consistencia, 20),
             peso: 10
         },
         {
-            // Cartões vermelhos são penalizados.
             nota: normalizarMetrica(p.vermelhos, 3, false),
             peso: 5
         }
     ]);
 }
 
+// Meias: maior foco em passe e desempenho técnico.
 function calcularScoreMeioCampista(p) {
+    return calcularMediaPonderada([
+        {
+            nota: normalizarMetrica(p.clMed, 8.0),
+            peso: 35
+        },
+        {
+            nota: normalizarMetrica(p.psC, 90),
+            peso: 30
+        },
+        {
+            nota: normalizarMetrica(p.mDes, 80),
+            peso: 15
+        },
+        {
+            nota: normalizarMetrica(p.cabPct, 50),
+            peso: 10
+        },
+        {
+            nota: normalizarMetrica(p.consistencia, 20),
+            peso: 5
+        },
+        {
+            nota: normalizarMetrica(p.vermelhos, 3, false),
+            peso: 5
+        }
+    ]);
+}
+
+// Volantes: maior foco em contribuição defensiva e jogo aéreo.
+function calcularScoreVolante(p) {
     return calcularMediaPonderada([
         {
             nota: normalizarMetrica(p.clMed, 8.0),
@@ -322,20 +361,20 @@ function calcularScoreMeioCampista(p) {
             peso: 20
         },
         {
-            nota: normalizarMetrica(p.gls90, 0.5),
-            peso: 15
+            nota: normalizarMetrica(p.mDes, 85),
+            peso: 25
         },
         {
-            nota: normalizarMetrica(p.xg, 10),
-            peso: 15
-        },
-        {
-            nota: normalizarMetrica(p.des, 5),
-            peso: 15
+            nota: normalizarMetrica(p.cabPct, 50),
+            peso: 20
         },
         {
             nota: normalizarMetrica(p.consistencia, 20),
-            peso: 10
+            peso: 5
+        },
+        {
+            nota: normalizarMetrica(p.vermelhos, 3, false),
+            peso: 5
         }
     ]);
 }
@@ -395,6 +434,10 @@ function calcularScoreDesempenho(p) {
             resultado = calcularScoreMeioCampista(p);
             break;
 
+        case 'volante':
+            resultado = calcularScoreVolante(p);
+            break;
+
         case 'atacante':
             resultado = calcularScoreAtacante(p);
             break;
@@ -439,8 +482,6 @@ function calcularScoreFinanceiro(p) {
         }
     }
 
-    // Idade só influencia a avaliação financeira.
-    // Ela não reduz a nota de desempenho esportivo.
     let scoreIdade = null;
 
     if (p.idade !== null && p.idade !== undefined) {
@@ -480,8 +521,6 @@ function calcularScoreFinanceiro(p) {
 function calculateMoneyballScore(p) {
     const desempenho = calcularScoreDesempenho(p);
 
-    // Sem dados suficientes de desempenho, não existe score final.
-    // O score financeiro sozinho não pode recomendar um jogador.
     if (desempenho === null) {
         return null;
     }
@@ -518,7 +557,6 @@ function getScoreClass(score) {
 function obterRecomendacao(p) {
     const confiabilidade = obterConfiabilidadeJogos(p);
 
-    // Sem score de desempenho, não existe recomendação.
     if (p.moneyballScore === null || p.moneyballScore === undefined) {
         return {
             recommendation: 'Dados insuficientes',
@@ -526,7 +564,6 @@ function obterRecomendacao(p) {
         };
     }
 
-    // Poucas partidas impedem recomendações fortes.
     if (confiabilidade.nivel === 'muito-pequena') {
         return {
             recommendation: 'Amostra muito pequena',
@@ -592,11 +629,8 @@ function obterRecomendacao(p) {
 function analyzePlayers(rawPlayers) {
     const analyzedPlayers = rawPlayers.map((p, index) => {
         const validacao = verificarDadosSuficientes(p);
-
         const confiabilidade = obterConfiabilidadeJogos(p);
-
         const scoreDesempenho = calcularScoreDesempenho(p);
-
         const scoreFinanceiro = calcularScoreFinanceiro(p);
 
         const moneyballScore = scoreDesempenho === null
@@ -639,7 +673,6 @@ function analyzePlayers(rawPlayers) {
     });
 
     analyzedPlayers.sort((a, b) => {
-        // Jogadores sem score ficam depois dos jogadores avaliados.
         if (a.moneyballScore === null && b.moneyballScore !== null) {
             return 1;
         }

@@ -24,12 +24,6 @@ function parseNum(valStr) {
 }
 
 // Converte valores financeiros do Football Manager.
-//
-// "16M R$"   = 16.000.000
-// "82,5m R$" = 82.500
-// "850 R$"   = 850
-// "0 R$"     = 0
-// "-"        = null
 function parseValor(valorStr) {
     if (valorStr === null || valorStr === undefined) return null;
 
@@ -64,16 +58,10 @@ function parseValor(valorStr) {
 // LEITURA DOS JOGOS
 // ============================================================
 
-// Exemplos do Football Manager:
-//
-// "23 (1)" = 23 titularidades + 1 entrada como reserva
-// "13"     = 13 titularidades + 0 entradas como reserva
-// "0 (9)"  = 0 titularidades + 9 entradas como reserva
-// "-"      = nenhuma partida registrada
-//
-// Mantemos jogosInformados para distinguir:
-// - Coluna Jogos presente com "-": zero partidas.
-// - Coluna Jogos ausente em exportações antigas: informação desconhecida.
+// "23 (1)" = 23 titularidades + 1 entrada como reserva.
+// "13"     = 13 titularidades.
+// "0 (9)"  = 0 titularidades + 9 entradas como reserva.
+// "-"      = nenhuma partida registrada.
 
 function parseDetalhesJogos(jogosStr) {
     if (jogosStr === null || jogosStr === undefined) {
@@ -131,7 +119,7 @@ function parseDetalhesJogos(jogosStr) {
     };
 }
 
-// Mantida para compatibilidade com outras partes do projeto.
+// Mantida para compatibilidade.
 function parseTotalJogos(jogosStr) {
     const detalhes = parseDetalhesJogos(jogosStr);
 
@@ -139,6 +127,10 @@ function parseTotalJogos(jogosStr) {
         ? detalhes.total
         : null;
 }
+
+// ============================================================
+// NORMALIZAÇÃO DOS CABEÇALHOS
+// ============================================================
 
 function normalizeHeader(header) {
     return String(header ?? '')
@@ -181,8 +173,8 @@ function textoPorAlias(row, aliases, padrao = '-') {
 // IDENTIFICAÇÃO AUTOMÁTICA DO MODELO
 // ============================================================
 
-// Os modelos novos possuem os mesmos cabeçalhos.
-// Por isso, usamos o nome do arquivo como identificação principal.
+// Os modelos novos podem ter cabeçalhos iguais.
+// Por isso, o nome do arquivo identifica a categoria.
 
 function identificarCategoriaPorArquivo(nomeArquivo) {
     const nome = normalizeHeader(nomeArquivo);
@@ -193,6 +185,10 @@ function identificarCategoriaPorArquivo(nomeArquivo) {
 
     if (nome.includes('defensor')) {
         return 'defensor';
+    }
+
+    if (nome.includes('volante')) {
+        return 'volante';
     }
 
     if (
@@ -217,7 +213,6 @@ function identificarCategoria(headers) {
 
     const possui = nome => h.includes(normalizeHeader(nome));
 
-    // Goleiros
     if (
         possui('sof/90') ||
         possui('pen. defendidos') ||
@@ -226,7 +221,6 @@ function identificarCategoria(headers) {
         return 'goleiro';
     }
 
-    // Atacantes
     if (
         possui('atta') ||
         possui('assis/90') ||
@@ -235,15 +229,21 @@ function identificarCategoria(headers) {
         return 'atacante';
     }
 
-    // Defensores
     if (
-        possui('m des') ||
-        possui('vermelhos')
+        possui('cab g/90') ||
+        (possui('des') && possui('m des'))
     ) {
         return 'defensor';
     }
 
-    // Meio-campistas
+    if (
+        possui('% passe') &&
+        possui('cab %') &&
+        possui('m des')
+    ) {
+        return 'meio-campista';
+    }
+
     if (
         possui('xg') &&
         possui('gls/90') &&
@@ -276,7 +276,6 @@ function parseFMExport(fileContent, nomeArquivo = '') {
 
     let headers = null;
 
-    // Primeiro tenta identificar pelo nome do arquivo.
     let categoria = identificarCategoriaPorArquivo(nomeArquivo);
 
     const players = [];
@@ -292,7 +291,6 @@ function parseFMExport(fileContent, nomeArquivo = '') {
                 .trim()
         );
 
-        // Procura uma linha que realmente seja o cabeçalho.
         if (headers === null) {
             const cabecalhosNormalizados = cellTexts.map(normalizeHeader);
 
@@ -303,8 +301,6 @@ function parseFMExport(fileContent, nomeArquivo = '') {
 
             headers = cellTexts;
 
-            // Se o nome do arquivo não identificou a categoria,
-            // tenta usar os cabeçalhos dos modelos antigos.
             if (categoria === 'desconhecido') {
                 categoria = identificarCategoria(headers);
             }
@@ -331,7 +327,6 @@ function parseFMExport(fileContent, nomeArquivo = '') {
 
         const valorStr = textoPorAlias(rowData, ['valor'], '-');
         const idadeTexto = textoPorAlias(rowData, ['idade'], '');
-
         const jogosStr = textoPorAlias(rowData, ['jogos'], '');
 
         const detalhesJogos = parseDetalhesJogos(jogosStr);
@@ -349,7 +344,8 @@ function parseFMExport(fileContent, nomeArquivo = '') {
             categoriaLabel: {
                 goleiro: 'Goleiro',
                 defensor: 'Defensor',
-                'meio-campista': 'Meio-campista',
+                'meio-campista': 'Meia',
+                volante: 'Volante',
                 atacante: 'Atacante'
             }[categoria] || 'Não identificada',
 
@@ -391,11 +387,25 @@ function parseFMExport(fileContent, nomeArquivo = '') {
                 'pen. defendidos'
             ]),
 
-            // Defensores
-            psC: numeroPorAlias(rowData, ['ps c']),
+            // Passes e jogo aéreo
+            // Os modelos novos usam "% Passe" e "Cab %".
+            psC: numeroPorAlias(rowData, [
+                '% passe',
+                'ps c',
+                'passes certos'
+            ]),
+
+            cabPct: numeroPorAlias(rowData, [
+                'cab %',
+                '% cab',
+                'cabecadas %'
+            ]),
+
+            // Métricas defensivas
             mDes: numeroPorAlias(rowData, ['m des']),
             des: numeroPorAlias(rowData, ['des']),
             vermelhos: numeroPorAlias(rowData, ['vermelhos']),
+            cabG90: numeroPorAlias(rowData, ['cab g/90']),
 
             // Meio-campistas e atacantes
             xg: numeroPorAlias(rowData, ['xg']),
@@ -416,7 +426,7 @@ function parseFMExport(fileContent, nomeArquivo = '') {
             semGolos: textoPorAlias(rowData, ['sem golos sofridos']),
             crT: textoPorAlias(rowData, ['% cr t']),
 
-            // Guarda os dados originais para futuras evoluções.
+            // Guarda os dados originais.
             dadosOriginais: { ...rowData }
         };
 

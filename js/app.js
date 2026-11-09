@@ -42,25 +42,33 @@ const colunasPorCategoria = {
     ],
 
     defensor: [
+        { key: 'psC', label: '% Passe', type: 'percent' },
+        { key: 'mDes', label: 'M Des', type: 'percent' },
         { key: 'des', label: 'Desarmes', type: 'number' },
-        { key: 'mDes', label: '% Desarmes', type: 'percent' },
-        { key: 'psC', label: '% Passes Certos', type: 'percent' },
-        { key: 'vermelhos', label: 'Vermelhos', type: 'number' }
+        { key: 'vermelhos', label: 'Vermelhos', type: 'number' },
+        { key: 'cabG90', label: 'Cab G/90', type: 'number' }
     ],
 
     'meio-campista': [
-        { key: 'psC', label: '% Passes Certos', type: 'percent' },
-        { key: 'gls90', label: 'Gols/90', type: 'number' },
-        { key: 'xg', label: 'xG', type: 'number' },
-        { key: 'des', label: 'Desarmes', type: 'number' }
+        { key: 'psC', label: '% Passe', type: 'percent' },
+        { key: 'cabPct', label: 'Cab %', type: 'percent' },
+        { key: 'mDes', label: 'M Des', type: 'percent' },
+        { key: 'vermelhos', label: 'Vermelhos', type: 'number' }
+    ],
+
+    volante: [
+        { key: 'psC', label: '% Passe', type: 'percent' },
+        { key: 'cabPct', label: 'Cab %', type: 'percent' },
+        { key: 'mDes', label: 'M Des', type: 'percent' },
+        { key: 'vermelhos', label: 'Vermelhos', type: 'number' }
     ],
 
     atacante: [
-        { key: 'gls90', label: 'Gols/90', type: 'number' },
-        { key: 'xg', label: 'xG', type: 'number' },
         { key: 'ast', label: 'Assistências', type: 'number' },
-        { key: 'assis90', label: 'Assis/90', type: 'number' },
         { key: 'atTa', label: 'Ataque Tático', type: 'number' },
+        { key: 'xg', label: 'xG', type: 'number' },
+        { key: 'gls90', label: 'Gls/90', type: 'number' },
+        { key: 'assis90', label: 'Assis/90', type: 'number' },
         { key: 'penR', label: 'Pen/R', type: 'text' }
     ]
 };
@@ -246,9 +254,8 @@ async function handleUpload(file) {
     try {
         const fileContent = await file.text();
 
-        // O nome do arquivo também é enviado ao parser.
-        // Isso permite identificar os novos modelos, que possuem
-        // os mesmos cabeçalhos.
+        // O nome do arquivo identifica os modelos novos,
+        // que podem possuir cabeçalhos iguais.
         const rawPlayers = parseFMExport(fileContent, file.name);
 
         if (rawPlayers.length === 0) {
@@ -275,7 +282,6 @@ async function handleUpload(file) {
         sortAscending = false;
         searchInput.value = '';
 
-        // Identifica a categoria da lista e atualiza as colunas.
         const categoriaAtual = allPlayers[0]?.categoria || 'desconhecido';
 
         criarCabecalhoTabela(categoriaAtual);
@@ -348,7 +354,6 @@ function renderTable(players) {
             const valor = formatarCelula(jogador, coluna);
 
             if (coluna.type === 'score') {
-                // Score ausente não deve ser exibido como zero.
                 if (
                     jogador[coluna.key] === null ||
                     jogador[coluna.key] === undefined
@@ -437,7 +442,6 @@ function sortData(column) {
         const ausenteA = valA === null || valA === undefined || valA === '';
         const ausenteB = valB === null || valB === undefined || valB === '';
 
-        // Dados ausentes sempre ficam no final.
         if (ausenteA && !ausenteB) return 1;
         if (!ausenteA && ausenteB) return -1;
         if (ausenteA && ausenteB) return 0;
@@ -506,7 +510,6 @@ async function restaurarUltimaAnalise() {
         if (Array.isArray(savedPlayers) && savedPlayers.length > 0) {
             allPlayers = savedPlayers;
 
-            // Também recupera as colunas corretas ao abrir o site.
             const categoriaAtual = allPlayers[0]?.categoria || 'desconhecido';
 
             criarCabecalhoTabela(categoriaAtual);
