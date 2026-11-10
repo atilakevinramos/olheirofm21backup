@@ -20,7 +20,9 @@ function normalizarMetrica(valor, referencia, maior = true) {
         valor === null ||
         valor === undefined ||
         valor === '' ||
-        !Number.isFinite(Number(valor))
+        !Number.isFinite(Number(valor)) ||
+        !Number.isFinite(Number(referencia)) ||
+        Number(referencia) <= 0
     ) {
         return null;
     }
@@ -32,6 +34,24 @@ function normalizarMetrica(valor, referencia, maior = true) {
     }
 
     return limitarPontuacao(nota);
+}
+
+// Calcula o xG médio por aparição.
+// O total de jogos é usado como aproximação,
+// pois o modelo atual não possui minutos jogados.
+function obterXgPorJogo(p) {
+    if (
+        !Number.isFinite(Number(p.xg)) ||
+        p.xg === null ||
+        p.xg === undefined ||
+        p.totalJogos === null ||
+        p.totalJogos === undefined ||
+        Number(p.totalJogos) <= 0
+    ) {
+        return null;
+    }
+
+    return Number(p.xg) / Number(p.totalJogos);
 }
 
 function calcularMediaPonderada(metricas) {
@@ -104,7 +124,7 @@ function verificarDadosSuficientes(p) {
             ]
         },
 
-        // Novo modelo de meias.
+        // Meias: criação, passe e contribuição ofensiva.
         'meio-campista': {
             metricas: [
                 'clMed',
@@ -123,7 +143,7 @@ function verificarDadosSuficientes(p) {
             ]
         },
 
-        // Volantes continuam com o modelo defensivo.
+        // Volantes: contribuição defensiva e jogo aéreo.
         volante: {
             metricas: [
                 'clMed',
@@ -141,6 +161,8 @@ function verificarDadosSuficientes(p) {
             ]
         },
 
+        // Atacantes precisam apresentar pelo menos
+        // uma estatística ofensiva específica.
         atacante: {
             metricas: [
                 'clMed',
@@ -148,9 +170,17 @@ function verificarDadosSuficientes(p) {
                 'xg',
                 'assis90',
                 'ast',
+                'penR',
                 'consistencia'
             ],
-            minimo: 3
+            minimo: 3,
+            metricasEspecificas: [
+                'gls90',
+                'xg',
+                'assis90',
+                'ast',
+                'penR'
+            ]
         }
     };
 
@@ -325,6 +355,8 @@ function calcularScoreDefensor(p) {
 
 // Meias: foco em criação, passe e contribuição ofensiva.
 function calcularScoreMeioCampista(p) {
+    const xgPorJogo = obterXgPorJogo(p);
+
     return calcularMediaPonderada([
         {
             nota: normalizarMetrica(p.clMed, 8.0),
@@ -343,7 +375,8 @@ function calcularScoreMeioCampista(p) {
             peso: 15
         },
         {
-            nota: normalizarMetrica(p.xg, 3.0),
+            // xG por aparição, em vez de xG acumulado.
+            nota: normalizarMetrica(xgPorJogo, 0.25),
             peso: 10
         },
         {
@@ -384,6 +417,8 @@ function calcularScoreVolante(p) {
 }
 
 function calcularScoreAtacante(p) {
+    const xgPorJogo = obterXgPorJogo(p);
+
     return calcularMediaPonderada([
         {
             nota: normalizarMetrica(p.clMed, 8.0),
@@ -394,7 +429,8 @@ function calcularScoreAtacante(p) {
             peso: 25
         },
         {
-            nota: normalizarMetrica(p.xg, 15),
+            // xG por aparição, em vez de xG acumulado.
+            nota: normalizarMetrica(xgPorJogo, 0.40),
             peso: 15
         },
         {
@@ -403,7 +439,14 @@ function calcularScoreAtacante(p) {
         },
         {
             nota: normalizarMetrica(p.ast, 15),
-            peso: 10
+            peso: 5
+        },
+        {
+            // Percentual de pênaltis convertidos.
+            // Peso pequeno porque não sabemos quantas
+            // cobranças foram realizadas.
+            nota: normalizarMetrica(p.penR, 100),
+            peso: 5
         },
         {
             nota: normalizarMetrica(p.consistencia, 20),

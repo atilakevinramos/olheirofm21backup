@@ -1,3 +1,4 @@
+
 // ============================================================
 // CONVERSÃO E NORMALIZAÇÃO DOS DADOS
 // ============================================================
@@ -388,7 +389,6 @@ function parseFMExport(fileContent, nomeArquivo = '') {
             ]),
 
             // Passes e jogo aéreo
-            // Os modelos novos usam "% Passe" e "Cab %".
             psC: numeroPorAlias(rowData, [
                 '% passe',
                 'ps c',
@@ -415,7 +415,14 @@ function parseFMExport(fileContent, nomeArquivo = '') {
 
             // Atacantes
             atTa: numeroPorAlias(rowData, ['atta']),
-            penR: textoPorAlias(rowData, ['pen/r'], '-'),
+
+            // Agora Pen/R é armazenado como número.
+            // Exemplo: "100%" passa a ser 100.
+            // Quando estiver como "-", permanece null.
+            penR: numeroPorAlias(rowData, [
+                'pen/r',
+                '% penaltis convertidos'
+            ]),
 
             // Campos de modelos antigos
             gls: numeroPorAlias(rowData, ['gls']),
