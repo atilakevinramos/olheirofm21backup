@@ -511,6 +511,176 @@ body {
     line-height: 1.6;
 }
 
+/* ============================================================
+   AVISO SOBRE O NÍVEL DAS COMPETIÇÕES
+   ============================================================ */
+
+.competition-warning {
+    position: relative;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(245, 158, 11, 0.28);
+    border-left: 4px solid #d69e36;
+    border-radius: 14px;
+    background:
+        radial-gradient(
+            circle at 100% 0%,
+            rgba(245, 158, 11, 0.09),
+            transparent 38%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(31, 35, 47, 0.98),
+            rgba(25, 28, 39, 0.98)
+        );
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.competition-warning-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 16px;
+}
+
+.competition-warning-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+    background: rgba(245, 158, 11, 0.13);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    color: #fbbf24;
+    font-size: 21px;
+}
+
+.competition-warning-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #fbbf24;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.3px;
+}
+
+.competition-warning-header h5 {
+    color: #fff;
+    line-height: 1.35;
+}
+
+.competition-warning-text {
+    max-width: 950px;
+    margin-bottom: 20px;
+    color: #bfc7d5;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.competition-warning-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.competition-warning-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px;
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.045);
+}
+
+.competition-warning-item-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    font-size: 13px;
+}
+
+.competition-warning-item strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #e8edf5;
+    font-size: 12px;
+}
+
+.competition-warning-item p {
+    margin: 0;
+    color: #aeb8c8;
+    font-size: 11px;
+    line-height: 1.65;
+}
+
+.competition-warning-caution {
+    grid-column: 1 / -1;
+    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.045);
+}
+
+.competition-warning-caution .competition-warning-item-icon {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+}
+
+.competition-warning-footer {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-top: 16px;
+    padding: 14px 16px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 9px;
+    background: rgba(59, 130, 246, 0.055);
+    color: #c4d0e2;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.competition-warning-footer i {
+    flex-shrink: 0;
+    margin-top: 3px;
+    color: #93c5fd;
+    font-size: 15px;
+}
+
+.competition-warning-footer strong {
+    color: #dbeafe;
+}
+
+/* Orientação complementar dentro do tutorial */
+.tutorial-competition-tip {
+    padding: 14px 16px;
+    border: 1px solid rgba(245, 158, 11, 0.22);
+    border-left: 3px solid #d69e36;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.055);
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.tutorial-competition-tip > i {
+    color: #fbbf24;
+}
+
+.tutorial-competition-tip strong {
+    color: #fcd34d;
+}
+
 .shortcut-list {
     display: flex;
     flex-direction: column;
@@ -696,6 +866,42 @@ select:focus-visible,
 
     .drop-zone {
         padding: 22px 15px;
+    }
+
+    .competition-warning {
+        padding: 18px 15px;
+    }
+
+    .competition-warning-header {
+        align-items: flex-start;
+        gap: 11px;
+    }
+
+    .competition-warning-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 17px;
+    }
+
+    .competition-warning-header h5 {
+        font-size: 15px;
+    }
+
+    .competition-warning-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .competition-warning-caution {
+        grid-column: auto;
+    }
+
+    .competition-warning-item {
+        padding: 13px;
+    }
+
+    .competition-warning-footer {
+        padding: 12px;
+        font-size: 11px;
     }
 }
 
