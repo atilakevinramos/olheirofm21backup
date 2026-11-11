@@ -43,8 +43,8 @@
 
             <button class="main-tab" id="tutorialTabButton"
                     onclick="showTab('tutorial')">
-                <i class="fa-solid fa-book-open me-2"></i>
-                Como utilizar?
+                <i class="fa-solid fa-list-check me-2"></i>
+                Como utilizar
             </button>
         </div>
 
@@ -329,298 +329,413 @@
         </div>
 
         <!-- ================================================== -->
-        <!-- ABA DO TUTORIAL -->
+        <!-- ABA COMO UTILIZAR: COLUNAS ACEITAS -->
         <!-- ================================================== -->
 
         <div id="tutorialTab" class="d-none">
 
             <div class="tutorial-header text-center mb-4">
                 <div class="tutorial-icon mb-3">
-                    <i class="fa-solid fa-graduation-cap"></i>
+                    <i class="fa-solid fa-list-check"></i>
                 </div>
 
                 <h3 class="fw-bold">Como utilizar o Moneyball Analyzer?</h3>
 
                 <p class="text-secondary">
-                    Siga o passo a passo para exportar seus jogadores do Football Manager 2021
-                    e analisar os dados no nosso site.
+                    Consulte abaixo os nomes das colunas que o site consegue
+                    identificar nos arquivos HTML exportados pelo Football Manager 2021.
                 </p>
             </div>
 
-            <!-- ETAPA 1 -->
             <div class="card tutorial-card mb-3">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold mb-2">
+                        <i class="fa-solid fa-circle-info text-success me-2"></i>
+                        Antes de importar o arquivo
+                    </h5>
 
-                    <div class="tutorial-step">
-                        <span class="tutorial-number">01</span>
+                    <p class="text-secondary mb-2">
+                        O arquivo precisa ser uma exportação em <strong>HTML</strong>
+                        contendo uma tabela de jogadores. Os nomes das colunas devem
+                        corresponder aos nomes ou às variações listadas nesta página.
+                    </p>
 
-                        <div>
-                            <h5 class="fw-bold mb-2">
-                                Baixe a visualização personalizada
-                            </h5>
-
-                            <p class="text-secondary mb-3">
-                                Primeiro, baixe o arquivo de visualização do Football Manager.
-                                Ele organiza as colunas da lista de jogadores com as informações
-                                necessárias para o funcionamento do analisador.
-                            </p>
-
-                            <a href="https://drive.google.com/file/d/1ydG1ppN1fNox1J69f4oSKUzL5D7Htfwg/view?usp=sharing"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="btn btn-success fw-bold">
-                                <i class="fa-solid fa-download me-2"></i>
-                                Baixar arquivo de visualização (.fmf)
-                            </a>
-
-                            <p class="small text-secondary mt-2 mb-0">
-                                O arquivo possui a extensão .fmf.
-                            </p>
-                        </div>
-                    </div>
-
+                    <p class="text-secondary mb-0">
+                        O site identifica o modelo pelo nome do arquivo. Para os cinco
+                        modelos atuais, utilize:
+                        <strong>goleiros.html</strong>,
+                        <strong>defensores.html</strong>,
+                        <strong>volantes.html</strong>,
+                        <strong>meias.html</strong> ou
+                        <strong>atacantes.html</strong>.
+                        O nome correto ajuda o sistema a diferenciar categorias que
+                        possuem algumas colunas em comum.
+                    </p>
                 </div>
             </div>
 
-            <!-- ETAPA 2 -->
             <div class="card tutorial-card mb-3">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fa-solid fa-id-card text-success me-2"></i>
+                        1. Informações gerais do jogador
+                    </h5>
 
-                    <div class="tutorial-step">
-                        <span class="tutorial-number">02</span>
-
-                        <div>
-                            <h5 class="fw-bold mb-2">
-                                Instale o arquivo no Football Manager 2021
-                            </h5>
-
-                            <p class="text-secondary">
-                                Após baixar o arquivo, coloque-o na pasta
-                                <strong>views</strong> do Football Manager 2021.
-                            </p>
-
-                            <div class="tutorial-path">
-                                <i class="fa-solid fa-folder-open me-2"></i>
-                                Documentos → Sports Interactive → Football Manager 2021 → views
-                            </div>
-
-                            <p class="text-secondary mt-3 mb-2">
-                                No Windows, o caminho normalmente será:
-                            </p>
-
-                            <div class="tutorial-code">
-                                Documentos\Sports Interactive\Football Manager 2021\views
-                            </div>
-
-                            <div class="tutorial-tip mt-3">
-                                <i class="fa-solid fa-lightbulb me-2"></i>
-                                <strong>Dica:</strong> se a pasta views não existir,
-                                crie uma pasta com esse nome dentro da pasta
-                                Football Manager 2021.
-                            </div>
-
-                            <p class="text-secondary mt-3 mb-0">
-                                Não coloque o arquivo .fmf dentro da pasta de instalação
-                                do jogo. Ele deve ficar na pasta views dos seus documentos.
-                            </p>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Coluna no HTML</th>
+                                    <th>O que representa</th>
+                                    <th>Como o site utiliza</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Nome</strong></td>
+                                    <td>Nome do jogador.</td>
+                                    <td>Identificação e pesquisa.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Posição / Posicao</strong></td>
+                                    <td>Posição ou posições do atleta.</td>
+                                    <td>Identificação do jogador.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nac / Nacionalidade</strong></td>
+                                    <td>Nacionalidade do jogador.</td>
+                                    <td>Tabela e pesquisa.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Clube</strong></td>
+                                    <td>Clube atual do jogador.</td>
+                                    <td>Tabela e pesquisa.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Idade</strong></td>
+                                    <td>Idade do atleta.</td>
+                                    <td>Tabela e Score Financeiro.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Valor</strong></td>
+                                    <td>Valor de mercado informado pelo FM21.</td>
+                                    <td>Tabela e Score Financeiro.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Jogos</strong></td>
+                                    <td>Partidas como titular e aparições como reserva.</td>
+                                    <td>Quantidade de jogos e análise da confiabilidade da amostra.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Rec</strong></td>
+                                    <td>Campo de recomendação da exportação.</td>
+                                    <td>É armazenado, mas não altera o Score atual.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Inf</strong></td>
+                                    <td>Campo de informação da exportação.</td>
+                                    <td>É armazenado, mas não altera o Score atual.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
 
+                    <div class="tutorial-tip mt-3">
+                        <i class="fa-solid fa-lightbulb me-2"></i>
+                        <strong>Sobre Jogos:</strong> o formato como
+                        <strong>23 (1)</strong> é interpretado como 23 partidas
+                        como titular e 1 entrada como reserva.
+                    </div>
                 </div>
             </div>
 
-            <!-- ETAPA 3 -->
             <div class="card tutorial-card mb-3">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fa-solid fa-chart-line text-success me-2"></i>
+                        2. Colunas comuns de desempenho
+                    </h5>
 
-                    <div class="tutorial-step">
-                        <span class="tutorial-number">03</span>
-
-                        <div>
-                            <h5 class="fw-bold mb-2">
-                                Abra o jogo e pesquise os jogadores
-                            </h5>
-
-                            <p class="text-secondary">
-                                Agora abra o Football Manager 2021 e entre na área de
-                                pesquisa de jogadores.
-                            </p>
-
-                            <p class="text-secondary mb-2">
-                                Utilize os filtros do próprio jogo para encontrar os
-                                atletas que deseja analisar. Você pode pesquisar por
-                                idade, posição, nacionalidade, clube e outros critérios
-                                disponíveis no FM21.
-                            </p>
-
-                            <div class="tutorial-tip">
-                                <i class="fa-solid fa-lightbulb me-2"></i>
-                                Você pode fazer diferentes pesquisas. O analisador
-                                trabalhará com os jogadores que você exportar.
-                            </div>
-
-                            <div class="tutorial-competition-tip mt-3">
-                                <i class="fa-solid fa-ranking-star me-2"></i>
-
-                                <strong>
-                                    Dica importante sobre o nível das competições:
-                                </strong>
-
-                                <p class="mb-0 mt-2">
-                                    Sempre que possível, priorize pesquisas com jogadores
-                                    que atuam na mesma divisão do seu clube, em uma divisão
-                                    superior ou até uma divisão abaixo. Isso ajuda a encontrar
-                                    atletas cujo desempenho já foi testado em um contexto
-                                    competitivo mais próximo da sua realidade.
-                                </p>
-
-                                <p class="mb-0 mt-2">
-                                    Jogadores que dominam competições de nível muito inferior
-                                    também podem ser boas descobertas, mas exigem uma avaliação
-                                    mais cuidadosa. Não considere os números isoladamente:
-                                    confira os atributos, relatórios de olheiros e a capacidade
-                                    de adaptação a adversários mais fortes.
-                                </p>
-                            </div>
-
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Coluna no HTML</th>
+                                    <th>Significado</th>
+                                    <th>Utilização atual</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Cl Med</strong></td>
+                                    <td>Classificação média do jogador.</td>
+                                    <td>Exibição e Score de Desempenho.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cons</strong></td>
+                                    <td>Consistência do jogador.</td>
+                                    <td>Exibição e Score de Desempenho.</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
                 </div>
             </div>
 
-            <!-- ETAPA 4 -->
             <div class="card tutorial-card mb-3">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fa-solid fa-hand text-success me-2"></i>
+                        3. Colunas específicas por categoria
+                    </h5>
 
-                    <div class="tutorial-step">
-                        <span class="tutorial-number">04</span>
-
-                        <div>
-                            <h5 class="fw-bold mb-2">
-                                Carregue a visualização personalizada
-                            </h5>
-
-                            <p class="text-secondary">
-                                Na lista de jogadores, abra o menu de visualizações
-                                (normalmente localizado na parte superior da tabela).
-                            </p>
-
-                            <p class="text-secondary">
-                                Procure a visualização personalizada que você colocou
-                                na pasta views e selecione-a.
-                            </p>
-
-                            <div class="tutorial-tip">
-                                <i class="fa-solid fa-lightbulb me-2"></i>
-                                Confira se as colunas foram carregadas corretamente
-                                antes de exportar os jogadores.
-                            </div>
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success">Goleiros — goleiros.html</h6>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Coluna</th>
+                                        <th>Significado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Sof/90</strong></td>
+                                        <td>Gols sofridos por 90 minutos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>% de Pen. Def.</strong></td>
+                                        <td>Percentual de pênaltis defendidos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Pen. Defendidos</strong></td>
+                                        <td>Quantidade de pênaltis defendidos.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success">Defensores — defensores.html</h6>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Coluna</th>
+                                        <th>Significado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>% Passe / Ps C</strong></td>
+                                        <td>Percentual de passes certos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>M Des</strong></td>
+                                        <td>Percentual de desarmes bem-sucedidos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Des</strong></td>
+                                        <td>Desarmes por jogo.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vermelhos</strong></td>
+                                        <td>Cartões vermelhos recebidos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Cab G/90</strong></td>
+                                        <td>Gols de cabeça por 90 minutos.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success">Volantes — volantes.html</h6>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Coluna</th>
+                                        <th>Significado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>% Passe / Ps C</strong></td>
+                                        <td>Percentual de passes certos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Cab %</strong></td>
+                                        <td>Percentual de cabeceios certos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>M Des</strong></td>
+                                        <td>Percentual de desarmes bem-sucedidos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vermelhos</strong></td>
+                                        <td>Cartões vermelhos recebidos.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success">Meias — meias.html</h6>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Coluna</th>
+                                        <th>Significado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>% Passe / Ps C</strong></td>
+                                        <td>Percentual de passes certos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Assis/90</strong></td>
+                                        <td>Assistências por 90 minutos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>DrbPJ</strong></td>
+                                        <td>Dribles por jogo.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>xG</strong></td>
+                                        <td>Gols esperados (Expected Goals).</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h6 class="fw-bold text-success">Atacantes — atacantes.html</h6>
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Coluna</th>
+                                        <th>Significado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Ast</strong></td>
+                                        <td>Quantidade total de assistências.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>AtTa</strong></td>
+                                        <td>Campo de Ataque Tático conforme a exportação.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>xG</strong></td>
+                                        <td>Gols esperados (Expected Goals).</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Gls/90</strong></td>
+                                        <td>Gols por 90 minutos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Assis/90</strong></td>
+                                        <td>Assistências por 90 minutos.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Pen/R</strong></td>
+                                        <td>Percentual de pênaltis convertidos.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- ETAPA 5 -->
             <div class="card tutorial-card mb-3">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fa-solid fa-box-archive text-success me-2"></i>
+                        4. Colunas de modelos antigos
+                    </h5>
 
-                    <div class="tutorial-step">
-                        <span class="tutorial-number">05</span>
+                    <p class="text-secondary">
+                        O parser também reconhece alguns campos usados em versões
+                        anteriores dos modelos:
+                    </p>
 
-                        <div>
-                            <h5 class="fw-bold mb-2">
-                                Selecione e exporte os jogadores em HTML
-                            </h5>
-
-                            <p class="text-secondary">
-                                Com a lista de jogadores aberta e a visualização
-                                personalizada selecionada, faça o seguinte:
-                            </p>
-
-                            <div class="shortcut-list">
-
-                                <div class="shortcut-item">
-                                    <span class="shortcut-key">CTRL</span>
-                                    <span class="shortcut-plus">+</span>
-                                    <span class="shortcut-key">A</span>
-                                    <span class="shortcut-description">
-                                        Seleciona todos os jogadores da lista.
-                                    </span>
-                                </div>
-
-                                <div class="shortcut-item">
-                                    <span class="shortcut-key">CTRL</span>
-                                    <span class="shortcut-plus">+</span>
-                                    <span class="shortcut-key">P</span>
-                                    <span class="shortcut-description">
-                                        Abre a opção de impressão/exportação.
-                                    </span>
-                                </div>
-
-                            </div>
-
-                            <ol class="text-secondary mt-3">
-                                <li>Selecione todos os jogadores com Ctrl + A.</li>
-                                <li>Pressione Ctrl + P.</li>
-                                <li>Escolha a opção de salvar em formato HTML.</li>
-                                <li>Salve o arquivo no seu computador.</li>
-                            </ol>
-
-                            <div class="tutorial-tip">
-                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                                <strong>Importante:</strong> salve o arquivo como HTML,
-                                e não como PDF. O analisador precisa ler a tabela
-                                de jogadores e suas estatísticas.
-                            </div>
-                        </div>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge badge-primary p-2">Gls</span>
+                        <span class="badge badge-primary p-2">HdJ</span>
+                        <span class="badge badge-primary p-2">% Passe</span>
+                        <span class="badge badge-primary p-2">DrbPJ</span>
+                        <span class="badge badge-primary p-2">% Remates</span>
+                        <span class="badge badge-primary p-2">Sem Golos Sofridos</span>
+                        <span class="badge badge-primary p-2">% Cr T</span>
                     </div>
 
+                    <p class="text-secondary mb-0">
+                        Esses campos são lidos ou preservados pelo parser para
+                        compatibilidade, mas não fazem parte automaticamente das
+                        colunas e dos cálculos dos cinco modelos atuais.
+                    </p>
                 </div>
             </div>
 
-            <!-- ETAPA 6 -->
-            <div class="card tutorial-card mb-4">
+            <div class="card tutorial-card mb-3">
                 <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fa-solid fa-calculator text-success me-2"></i>
+                        5. Quais dados entram nos Scores?
+                    </h5>
 
-                    <div class="tutorial-step">
-                        <span class="tutorial-number tutorial-number-final">06</span>
+                    <p class="text-secondary">
+                        O site não utiliza todas as colunas reconhecidas no cálculo.
+                        Atualmente, os critérios de desempenho são:
+                    </p>
 
-                        <div>
-                            <h5 class="fw-bold mb-2">
-                                Envie o HTML para o Moneyball Analyzer
-                            </h5>
+                    <ul class="text-secondary">
+                        <li><strong>Goleiros:</strong> Cl Med, Sof/90, % de Pen. Def., Cons e Pen. Defendidos.</li>
+                        <li><strong>Defensores:</strong> Cl Med, Des, M Des, % Passe, Cab G/90, Cons e Vermelhos.</li>
+                        <li><strong>Volantes:</strong> Cl Med, % Passe, M Des, Cab %, Cons e Vermelhos.</li>
+                        <li><strong>Meias:</strong> Cl Med, % Passe, Assis/90, DrbPJ, xG e Cons.</li>
+                        <li><strong>Atacantes:</strong> Cl Med, Gls/90, xG, Assis/90, Ast, Pen/R e Cons.</li>
+                    </ul>
 
-                            <p class="text-secondary">
-                                Agora falta pouco! Volte para a aba Analisador,
-                                selecione o arquivo HTML que você acabou de salvar
-                                e aguarde o processamento.
-                            </p>
-
-                            <p class="text-secondary">
-                                O site vai extrair os dados, calcular o Score Moneyball
-                                e apresentar a classificação dos jogadores.
-                            </p>
-
-                            <button type="button"
-                                    class="btn btn-success fw-bold mt-2"
-                                    onclick="showTab('analyzer')">
-                                <i class="fa-solid fa-chart-line me-2"></i>
-                                Ir para o analisador
-                            </button>
-                        </div>
-                    </div>
-
+                    <p class="text-secondary mb-0">
+                        O <strong>Score Financeiro</strong> considera o valor de
+                        mercado e a idade. O Score Final combina desempenho e
+                        avaliação financeira. Clube, nacionalidade e posição são
+                        informações de identificação e pesquisa, não critérios
+                        diretos do Score.
+                    </p>
                 </div>
             </div>
 
-            <!-- OBSERVAÇÃO FINAL -->
-            <div class="tutorial-footer text-center">
-                <i class="fa-solid fa-circle-info me-2"></i>
-                O arquivo .fmf organiza as colunas dentro do jogo.
-                O arquivo HTML contém os jogadores e estatísticas que serão
-                enviados ao analisador.
+            <div class="tutorial-card tutorial-footer text-center mb-4">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                <strong>Atenção:</strong> quando uma célula aparece como
+                <strong>-</strong>, o site trata o dado como indisponível, e não
+                necessariamente como zero. Colunas extras que não estejam nesta
+                relação podem ser preservadas internamente no arquivo importado,
+                mas não serão automaticamente exibidas, pesquisáveis ou utilizadas
+                nos cálculos.
+            </div>
+
+            <div class="text-center mb-4">
+                <button type="button"
+                        class="btn btn-success fw-bold"
+                        onclick="showTab('analyzer')">
+                    <i class="fa-solid fa-chart-line me-2"></i>
+                    Voltar ao analisador
+                </button>
             </div>
 
         </div>
